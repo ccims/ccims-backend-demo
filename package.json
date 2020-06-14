@@ -1,0 +1,31 @@
+{
+  "name": "ccims-backend",
+  "version": "0.0.1",
+  "description": "The backend for a cross component issue management system. Written in TypeScript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nk-coding/CCIMS-Test.git"
+  },
+  "keywords": [
+    "ccims",
+    "ims",
+    "issue",
+    "management",
+    "system"
+  ],
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/nk-coding/CCIMS-Test/issues"
+  },
+  "homepage": "https://github.com/nk-coding/CCIMS-Test#readme",
+  "dependencies": {
+    "@types/node": "^14.0.13",
+    "@types/pg": "^7.14.3",
+    "pg": "^8.2.1"
+  }
+}
