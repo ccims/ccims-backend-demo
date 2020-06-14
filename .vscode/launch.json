@@ -7,11 +7,10 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Compile and Launch Program",
+            "name": "Launch Program",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "preLaunchTask": "tsc: build - tsconfig.json",
             "program": "${workspaceFolder}\\out\\index.js",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
@@ -20,10 +19,11 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Compile and Launch Program",
             "skipFiles": [
                 "<node_internals>/**"
             ],
+            "preLaunchTask": "tsc: build - tsconfig.json",
             "program": "${workspaceFolder}\\out\\index.js",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
