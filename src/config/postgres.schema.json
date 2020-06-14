@@ -1,0 +1,35 @@
+{
+    "$schema": "http://json-schema.org/schema",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "type": "string"
+        },
+        "username": {
+            "type": "string",
+            "title": "Database username",
+            "description": "The username for the PostgreSQL Database in correct casing"
+        },
+        "password": {
+            "type": "string",
+            "title": "Database password",
+            "description": "The password for the PostgreSQL Database in correct casing and plan text"
+        },
+        "server": {
+            "type": "string",
+            "title": "Server hostname",
+            "description": "The hostname or IP address, the system will be able to find the PostgreSQL Server at"
+        },
+        "port": {
+            "type": "number",
+            "title": "Server port",
+            "description": "The port the PostgreSQL Server is listening on for clients"
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "username",
+        "password",
+        "$schema"
+    ]
+}
