@@ -1,5 +1,6 @@
 import * as pg from "pg";
 import { config } from "./config";
+import { ccimsApi } from "./api/ccimsApi";
 
 const pgOptions: pg.ClientConfig = {
     user: config.postgres.username,
@@ -12,5 +13,8 @@ client.connect().then(async () => {
     console.log(res.rows);
     client.end();
 });
+
+
+
 
 console.log("Hello ccims");
