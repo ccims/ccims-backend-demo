@@ -1,10 +1,11 @@
+import { Client } from "pg"
 import { DatabaseElement } from "../DatabaseElement";
 import { IMSClient } from "../IMSClient";
 
 export class User extends DatabaseElement {
-    private _userName : string;
+    private _userName: string;
 
-    private _password : string;
+    private _password: string;
 
     private componentIDs : string[];
 
@@ -26,15 +27,15 @@ export class User extends DatabaseElement {
         })
     }
 
-    public get userName() : string {
+    public get userName(): string {
         return this._userName;
     }
 
-    public set userName(userName : string) {
+    public set userName(userName: string) {
         this._userName = userName;
     }
 
-    public static byUserName() : User | undefined {
+    public static byUserName(username: string): User | undefined {
         return undefined;
     }
 

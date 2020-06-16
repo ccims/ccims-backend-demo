@@ -1,20 +1,19 @@
-import {User} from "../users/User"
+import { User } from "../users/User"
 
 export class IssueComment {
-    private readonly _creator : User;
+    private readonly _creator: User;
+    private readonly _body: string;
 
-    private readonly _body : string;
-
-    public constructor (creator : User, body : string) {
+    public constructor(creator: User, _body: string) {
         this._creator = creator;
-        this._body = body;
+        this._body = _body;
     }
 
-    public get creator() : User {
+    public get creator(): User {
         return this._creator;
     }
 
-    public get body() : string {
+    public get body(): string {
         return this._body;
     }
 }

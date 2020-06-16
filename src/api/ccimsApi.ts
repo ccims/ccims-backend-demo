@@ -1,36 +1,43 @@
 import Express from "express";
 import * as expCore from "express-serve-static-core";
-import { ApolloServer } from "apollo-server-express";
-import * as graphqlType from "type-graphql";
+import graphqlHTTP from "express-graphql";
+//import { ApolloServer } from "apollo-server-express";
+//import * as graphqlType from "type-graphql";
 import * as graphql from "graphql";
+import * as fs from "fs";
+import { RootApiResolver } from "./RootApiResolver";
+import path from "path";
 
-export class ccimsApi {
+export class CcimsApi {
 
     private port: number;
     private expressServer: expCore.Express;
-    private schema: graphql.GraphQLSchema | null;
-    private apolloServer: ApolloServer | null;
+    private schema: graphql.GraphQLSchema | undefined;
+    //private apolloServer: ApolloServer | undefined;
 
     public constructor(port: number) {
         this.port = port;
-        this.apolloServer = null;
+        //this.apolloServer = undefined;
         this.expressServer = Express();
-        this.schema = null;
+        this.schema = graphql.buildSchema(fs.readFileSync("schemas/schema.graphql").toString());
+        this.expressServer.use("/api", graphqlHTTP({
+            schema: this.schema,
+            rootValue: new RootApiResolver(),
+            graphiql: true
+        }))
     }
 
     /*
     public async start() {
-        this.schema = await graphqlType.buildSchema({
-            resolvers: [],
-            emitSchemaFile: true,
-            validate: false
+        /*this.apolloServer = new ApolloServer({
+            schema: this.schema
         });
-        this.apolloServer = new ApolloServer({
-            schema: this.schema ?
-        });
-        this.apolloServer.applyMiddleware({ this.expressServer });
+        this.apolloServer.applyMiddleware({
+            app: this.expressServer
+        });*/
 
         this.expressServer.listen({ port: this.port }, console.error);
+        console.log("Started api");
     }
     */
 }

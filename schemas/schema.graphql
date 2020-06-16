@@ -1,0 +1,36 @@
+type Query {
+    hello: String
+    data(a: Int!, b: String): [String]
+    user(username: String): User
+    issue(id: String): Issue
+}
+
+type Issue {
+    title: String
+    body: String
+    bodyRendered: String
+    comments: [Comment]
+}
+
+type Comment {
+    author: User
+    text: String
+    textRendered: String
+}
+
+type User {
+    name: String
+    components: [Component]
+    projects: [Project]
+}
+
+type Component {
+    name: String
+    issues: [Issue]
+    projects: [Project]
+}
+
+type Project {
+    name: String
+    components: [Component]
+}
