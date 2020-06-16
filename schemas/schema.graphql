@@ -1,7 +1,7 @@
 type Query {
     hello: String
     data(a: Int!, b: String): [String]
-    user(username: String)
+    user(username: String): User
     issue(id: String): Issue
 }
 
@@ -19,18 +19,18 @@ type Comment {
 }
 
 type User {
-    name: string
+    name: String
     components: [Component]
     projects: [Project]
 }
 
 type Component {
-    name: string
+    name: String
     issues: [Issue]
     projects: [Project]
 }
 
 type Project {
-    name: string
+    name: String
     components: [Component]
 }
