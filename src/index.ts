@@ -9,7 +9,7 @@ const pgOptions: pg.ClientConfig = {
     password: config.postgres.password,
     database: config.postgres.database
 };
-const client = new DBClient(new pg.Client(pgOptions)); 
+const client = DBClient.create(pgOptions);
 /*
 client.connect().then(async () => {
     let res = await client.query("SELECT date,name from helloWorld", []);
@@ -17,12 +17,13 @@ client.connect().then(async () => {
     client.end();
 });
 */
-client.client.connect().then(() => {
-    User.createNew(client, "test", "hello world").then(user => {
+client.then(client => {
+        User.createNew(client, "test", "hello world").then(user => {
         console.log("this worked");
         console.log(user);
     });
 })
+
 
 
 new CcimsApi(8080).start();
