@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import {Component} from "./Component";
 import {Client} from "pg";
 import { DatabaseElement } from "../DatabaseElement";
