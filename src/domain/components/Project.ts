@@ -1,18 +1,15 @@
 import {Component} from "./Component";
 import {Client} from "pg";
+import { DatabaseElement } from "../DatabaseElement";
 
-export class Project {
+export class Project extends DatabaseElement {
     private components : Component[];
 
-    private readonly pg : Client;
-
-    public constructor(pg : Client) {
-        this.components = [];
-        this.pg = pg;
-        
+    public constructor(client : Client, id : string) {
+        super(client, id);
     }
 
-    public static loadAllProjects(client : Client) {
+    public static createProject() : Project {
         
     }
 }

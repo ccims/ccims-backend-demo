@@ -23,7 +23,7 @@ CREATE TABLE components (
     imsdata JSON
 );
 
-CREATE TYPE ims_login AS (
+CREATE TYPE ims_credential AS (
     type IMS_TYPE,
     secret TEXT
 );
@@ -33,5 +33,5 @@ CREATE TABLE users (
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     components INTEGER[] NOT NULL,
-    ims_login IMS_LOGIN NOT NULL
+    ims_login IMS_CREDENTIAL NOT NULL
 );

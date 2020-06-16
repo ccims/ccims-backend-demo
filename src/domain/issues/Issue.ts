@@ -1,8 +1,10 @@
 import {User} from "../users/User";
 import {Component} from "../components/Component";
 import { IssueComment } from "./IssueComment";
+import { Client } from "pg";
+import { DatabaseElement } from "../DatabaseElement";
 
-export class Issue {
+export class Issue extends DatabaseElement  {
 
     private readonly _creator : User;
 
@@ -12,34 +14,37 @@ export class Issue {
 
     private readonly _component : Component;
 
-    private readonly _id : string;
-
     private _linkedIssues : string[]
 
-    public constructor (component : Component, id : string, creator : User, creationDate : Date) {
+    private _body : string;
+
+    private _title : string;
+
+    public constructor (client : Client, id : string) {
+        super(client, id);
         this._component = component;
-        this._id = id;
         this._creator = creator;
         this._creationDate = creationDate;
         this._comments = [];
         this._linkedIssues = [];
+        this._body = body;
+        this._title = title;
     }
 
     private refreshLinkedIssues() {
         this._linkedIssues = []
-        this._comments.forEach(comment => )
+        //this._comments.forEach(comment => )
     }
 
-    public createComment(asUser : User, body : string) {
-
-        
+    public createComment(asUser : User, body : string) : IssueComment {
+        return new IssueComment(asUser, body);
     }
 
     /**
      * add an alredy existing IssueComment to this Issue
      * @param comment 
      */
-    public addComment(comment : IssueComment) {
+    public addComment(comment : IssueComment) : void {
         this.refreshLinkedIssues();
     }
 

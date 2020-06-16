@@ -18,6 +18,7 @@ export class ccimsApi {
         this.schema = null;
     }
 
+    /*
     public async start() {
         this.schema = await graphqlType.buildSchema({
             resolvers: [],
@@ -31,4 +32,5 @@ export class ccimsApi {
 
         this.expressServer.listen({ port: this.port }, console.error);
     }
+    */
 }
