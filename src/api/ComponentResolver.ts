@@ -11,14 +11,14 @@ export class ComponentResolver {
     }
 
     public name(): string {
-
+        return this.component.name;
     }
 
-    public issues(): Array<IssueResolver> {
-
+    public issues(): Array<IssueResolver | null> {
+        return [null];
     }
 
-    public projects(): Array<ProjectResolver> {
-
+    public projects(): Array<ProjectResolver | null> {
+        return [null];
     }
 }

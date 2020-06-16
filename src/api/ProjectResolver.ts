@@ -10,10 +10,10 @@ export class ProjectResolver {
     }
 
     public name(): string {
-
+        return this.project.name
     }
 
-    public components(): Array<ComponentResolver> {
-
+    public components(): Array<ComponentResolver | null> {
+        return [null];
     }
 }

@@ -1,5 +1,6 @@
 import { IssueComment } from "../domain/issues/IssueComment";
 import { UserResolver } from "./UserResolver";
+import marked from "marked";
 
 export class CommentResolver {
 
@@ -14,10 +15,10 @@ export class CommentResolver {
     }
 
     public text(): string {
-
+        return this.comment.body;
     }
 
     public textRendered(): string {
-
+        return marked(this.comment.body);
     }
 }

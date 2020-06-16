@@ -1,5 +1,6 @@
 import { Issue } from "../domain/issues/Issue";
 import { CommentResolver } from "./CommentResolver";
+import marked from "marked";
 
 export class IssueResolver {
 
@@ -10,15 +11,15 @@ export class IssueResolver {
     }
 
     public title(): string {
-
+        return this.issue.title;
     }
 
     public body(): string {
-
+        return this.issue.body;
     }
 
     public bodyRendered(): string {
-
+        return marked(this.issue.body);
     }
 
     public comments(): Array<CommentResolver> {

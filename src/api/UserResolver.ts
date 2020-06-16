@@ -14,11 +14,11 @@ export class UserResolver {
         return this.user.userName;
     }
 
-    public components(): Array<ComponentResolver> {
-
+    public components(): Array<ComponentResolver | null> {
+        return [null];
     }
 
-    public projects(): Array<ProjectResolver> {
-
+    public projects(): Array<ProjectResolver | null> {
+        return [null];
     }
 }
