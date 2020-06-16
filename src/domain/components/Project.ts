@@ -9,7 +9,7 @@ export class Project extends DatabaseElement {
 
     private readonly _name: string;
 
-    public constructor(client : IMSClient, id : string, name : string, components : string[]) {
+    public constructor(client : IMSClient, id : BigInt, name : string, components : string[]) {
         super(client, id);
         this._name = name;
         this.components = components;

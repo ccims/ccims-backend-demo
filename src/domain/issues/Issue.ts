@@ -21,7 +21,7 @@ export class Issue extends DatabaseElement  {
 
     private _title : string;
 
-    public constructor (client : IMSClient, id : string, component : Component, creator: User, creationDate: Date, title: string, body: string) {
+    public constructor (client : IMSClient, id : BigInt, component : Component, creator: User, creationDate: Date, title: string, body: string) {
         super(client, id);
         this._component = component;
         this._creator = creator;

@@ -12,7 +12,7 @@ export class User extends DatabaseElement {
 
     private imsCredentials : IMSCrendential[];
 
-    private constructor(client : IMSClient, id : string, userName : string, password : string, components : string[], imsCredentials : IMSCrendential[]) {
+    private constructor(client : IMSClient, id : BigInt, userName : string, password : string, components : string[], imsCredentials : IMSCrendential[]) {
         super(client, id);
         this._userName = userName;
         this._password = password;
@@ -20,16 +20,23 @@ export class User extends DatabaseElement {
         this.imsCredentials = imsCredentials;
     }
 
-    public static async load(client : IMSClient, id : string) : Promise<User> {
-        let pg = client.client
-        return pg.connect().then(async () => {
-            let res = await pg.query("SELECT * from users WHERE id=$1", [id]);
+    public static async load(client : IMSClient, id : BigInt) : Promise<User> {
+        const pg = client.client
+        return pg.query("SELECT id, username, password, components, ims_login FROM users WHERE id=$1::bigint;", [id]).then(res => {
             if (res.rowCount !== 1) {
                 throw new Error("illegal number of users found");
             } else {
-                return new User(client, id, res.rows[1] as string, res.rows[2] as string, res.rows[3], []);
+                return new User(client, id, res.rows[0]["username"], res.rows[0]["password"] as string, res.rows[0]["components"], []);
             }
         })
+    }
+
+    public static async createNew(client: IMSClient, userName : string, password : string): Promise<User> {
+        const pg = client.client;
+        return pg.query("INSERT INTO users (username, password, components, ims_login) VALUES ($1, $2, $3, $4) RETURNING id;", [userName, password, [], []]).then(async res => {
+            const id : BigInt = res.rows[0]["id"];
+            return await User.load(client, id);
+        });
     }
 
     public get userName(): string {
@@ -43,5 +50,4 @@ export class User extends DatabaseElement {
     public static byUserName(username: string): User | undefined {
         return undefined;
     }
-
 }

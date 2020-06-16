@@ -33,5 +33,5 @@ CREATE TABLE users (
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     components INTEGER[] NOT NULL,
-    ims_login IMS_CREDENTIAL NOT NULL
+    ims_login IMS_CREDENTIAL[] NOT NULL
 );
