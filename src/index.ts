@@ -2,14 +2,14 @@ import * as pg from "pg";
 import { config } from "./config";
 import { CcimsApi } from "./api/ccimsApi";
 import { User } from "./domain/users/User";
-import {IMSClient} from "./domain/IMSClient";
+import {DBClient} from "./domain/DBClient";
 
 const pgOptions: pg.ClientConfig = {
     user: config.postgres.username,
     password: config.postgres.password,
     database: config.postgres.database
 };
-const client = new IMSClient(new pg.Client(pgOptions)); 
+const client = new DBClient(new pg.Client(pgOptions)); 
 /*
 client.connect().then(async () => {
     let res = await client.query("SELECT date,name from helloWorld", []);

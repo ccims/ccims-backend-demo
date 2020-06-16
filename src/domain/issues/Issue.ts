@@ -3,7 +3,7 @@ import { Component } from "../components/Component";
 import { IssueComment } from "./IssueComment";
 import { Client } from "pg";
 import { DatabaseElement } from "../DatabaseElement";
-import { IMSClient } from "../IMSClient";
+import { DBClient } from "../DBClient";
 
 export class Issue extends DatabaseElement  {
 
@@ -21,7 +21,7 @@ export class Issue extends DatabaseElement  {
 
     private _title : string;
 
-    public constructor (client : IMSClient, id : BigInt, component : Component, creator: User, creationDate: Date, title: string, body: string) {
+    public constructor (client : DBClient, id : BigInt, component : Component, creator: User, creationDate: Date, title: string, body: string) {
         super(client, id);
         this._component = component;
         this._creator = creator;

@@ -1,17 +1,21 @@
 import {Client} from "pg";
-import { IMSClient } from "./IMSClient";
+import { DBClient } from "./DBClient";
 
 export class DatabaseElement {
     private readonly _id : BigInt;
 
     protected readonly client : Client;
 
-    protected readonly imsClient : IMSClient;
+    protected readonly imsClient : DBClient;
 
-    protected constructor(client : IMSClient, id : BigInt) {
+    protected constructor(client : DBClient, id : BigInt) {
         this.imsClient = client;
         this.client = client.client;
         this._id = id;
+    }
+
+    public saveToDB(): void {
+
     }
 
     public get id() : BigInt {

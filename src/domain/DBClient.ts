@@ -1,6 +1,6 @@
 import { Client } from "pg";
 
-export class IMSClient {
+export class DBClient {
     private readonly _client : Client;
 
     public constructor(client : Client) {

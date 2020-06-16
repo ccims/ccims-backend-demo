@@ -1,7 +1,7 @@
-import { Client } from "pg"
 import { DatabaseElement } from "../DatabaseElement";
-import { IMSClient } from "../IMSClient";
+import { DBClient } from "../DBClient";
 import { IMSCrendential } from "../../adapter/IMSCredential";
+import {Component} from "../components/Component";
 
 export class User extends DatabaseElement {
     private _userName: string;
@@ -12,7 +12,7 @@ export class User extends DatabaseElement {
 
     private imsCredentials : IMSCrendential[];
 
-    private constructor(client : IMSClient, id : BigInt, userName : string, password : string, components : string[], imsCredentials : IMSCrendential[]) {
+    private constructor(client : DBClient, id : BigInt, userName : string, password : string, components : string[], imsCredentials : IMSCrendential[]) {
         super(client, id);
         this._userName = userName;
         this._password = password;
@@ -20,7 +20,7 @@ export class User extends DatabaseElement {
         this.imsCredentials = imsCredentials;
     }
 
-    public static async load(client : IMSClient, id : BigInt) : Promise<User> {
+    public static async load(client : DBClient, id : BigInt) : Promise<User> {
         const pg = client.client
         return pg.query("SELECT id, username, password, components, ims_login FROM users WHERE id=$1::bigint;", [id]).then(res => {
             if (res.rowCount !== 1) {
@@ -31,12 +31,16 @@ export class User extends DatabaseElement {
         })
     }
 
-    public static async createNew(client: IMSClient, userName : string, password : string): Promise<User> {
+    public static async createNew(client: DBClient, userName : string, password : string): Promise<User> {
         const pg = client.client;
         return pg.query("INSERT INTO users (username, password, components, ims_login) VALUES ($1, $2, $3, $4) RETURNING id;", [userName, password, [], []]).then(async res => {
             const id : BigInt = res.rows[0]["id"];
             return await User.load(client, id);
         });
+    }
+
+    public addComponent(component : Component): void {
+
     }
 
     public get userName(): string {
