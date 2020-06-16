@@ -27,7 +27,6 @@ export class CcimsApi {
         }))
     }
 
-    
     public async start() {
         /*
         this.apolloServer = new ApolloServer({
@@ -41,5 +40,4 @@ export class CcimsApi {
         this.expressServer.listen({ port: this.port }, console.error);
         console.log("Started api");
     }
-    
 }
