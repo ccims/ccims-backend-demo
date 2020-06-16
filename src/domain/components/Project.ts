@@ -1,18 +1,18 @@
 import {Component} from "./Component";
 import {Client} from "pg";
 import { DatabaseElement } from "../DatabaseElement";
+import { IMSClient } from "../IMSClient";
+import { ExecFileSyncOptionsWithStringEncoding } from "child_process";
 
 export class Project extends DatabaseElement {
-    private components : Component[];
+    private components : string[];
 
     private readonly _name: string;
 
-    public constructor(client : Client, id : string) {
+    public constructor(client : IMSClient, id : string, name : string, components : string[]) {
         super(client, id);
-    }
-
-    public static createProject() : Project {
-
+        this._name = name;
+        this.components = components;
     }
 
     public get name(): string {

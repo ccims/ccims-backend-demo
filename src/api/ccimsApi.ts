@@ -27,17 +27,19 @@ export class CcimsApi {
         }))
     }
 
-    /*
+    
     public async start() {
-        /*this.apolloServer = new ApolloServer({
+        /*
+        this.apolloServer = new ApolloServer({
             schema: this.schema
         });
         this.apolloServer.applyMiddleware({
             app: this.expressServer
-        });*/
+        });
+        */
 
         this.expressServer.listen({ port: this.port }, console.error);
         console.log("Started api");
     }
-    */
+    
 }
