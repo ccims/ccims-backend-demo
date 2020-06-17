@@ -29,13 +29,13 @@ CREATE TYPE ims_credential AS (
     secret TEXT
 );
 
-CREATE TABLE issue_managemant_systems (
+CREATE TABLE issue_management_systems (
     id SERIAL PRIMARY KEY,
     type IMS_TYPE,
     data TEXT
 );
 
-INSERT INTO issue_managemant_systems (type, data) VALUES ('GitHub','https://api.github.com/graphql');
+INSERT INTO issue_management_systems (type, data) VALUES ('GitHub','https://api.github.com/graphql');
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
