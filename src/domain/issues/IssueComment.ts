@@ -3,10 +3,12 @@ import { User } from "../users/User"
 export class IssueComment {
     private readonly _creator: User;
     private readonly _body: string;
+    private readonly _creationDate: Date;
 
-    public constructor(creator: User, _body: string) {
+    public constructor(creator: User, body: string, creationDate: Date) {
         this._creator = creator;
-        this._body = _body;
+        this._body = body;
+        this._creationDate = creationDate;
     }
 
     public get creator(): User {
@@ -15,5 +17,9 @@ export class IssueComment {
 
     public get body(): string {
         return this._body;
+    }
+
+    public get greationDate(): Date {
+        return this._creationDate;
     }
 }
