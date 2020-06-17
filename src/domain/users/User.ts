@@ -13,7 +13,7 @@ export class User extends DatabaseElement {
 
     private imsCredentials : Map<IMSInfo, IMSCredential>;
 
-    private constructor(client : DBClient, id : BigInt, userName : string, password : string, components : BigInt[], imsCredentials : IMSCredential[]) {
+    protected constructor(client : DBClient, id : BigInt, userName : string, password : string, components : BigInt[], imsCredentials : IMSCredential[]) {
         super(client, id);
         this._userName = userName;
         this._password = password;

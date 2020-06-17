@@ -40,7 +40,7 @@ export class Issue {
     }
 
     public createComment(asUser: User, body: string): IssueComment {
-        return new IssueComment(asUser, body);
+        return new IssueComment(asUser, body, new Date());
     }
 
     /**

@@ -2,9 +2,12 @@ import { Client, ClientConfig } from "pg";
 import {User} from "./users/User";
 import { IMSInfo } from "../adapter/IMSInfo";
 import { IMSInfoProvider } from "../adapter/IMSInfoProvider";
+import { DummyUser } from "./users/DummyUser";
 
 export class DBClient {
     private readonly _client : Client;
+
+    private readonly _defaultUser: User;
 
     private readonly users: Map<BigInt, User>;
     private readonly imsInfos: Map<BigInt, IMSInfo>;
@@ -13,6 +16,8 @@ export class DBClient {
         this._client = client;
         this.users = new Map();
         this.imsInfos = new Map();
+        this._defaultUser = new DummyUser(this);
+        this.users.set(this._defaultUser.id, this._defaultUser);
     }
 
     public static async create(config: ClientConfig): Promise<DBClient> {
@@ -59,6 +64,10 @@ export class DBClient {
             return newInfo;
         }
         
+    }
+
+    public get defaultUser(): User {
+        return this._defaultUser;
     }
 
     public save(): void {
