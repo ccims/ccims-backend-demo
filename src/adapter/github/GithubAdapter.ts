@@ -47,7 +47,12 @@ export class GithubAdapter implements IMSAdapter {
                 }
             }
         }`).then((response: githubTypes.IssueRequest): Issue[] => {
-            return response.repository.issues.nodes.map(issue => new Issue(issue.id, this._component, this._dbClient.getUser(issue.author.login), new Date(issue.createdAt), issue.title, issue.body));
+            let issues: Issue[] = new Array();
+            response.repository.issues.nodes.forEach(async issue => {
+                const user = await this._dbClient.getUserByUsername(issue.author.login);
+                issues.push(new Issue(issue.id, this._component, user, new Date(issue.createdAt), issue.title, issue.body))
+            });
+            return issues;
         });
     }
 
@@ -70,7 +75,12 @@ export class GithubAdapter implements IMSAdapter {
                 }
             }
         }`).then((response: githubTypes.CommentRequest): IssueComment[] => {
-            return response.node.comments.nodes.map(comment => issue.createComment(this._dbClient.getUser(comment.author.login), comment.body, new Date(comment.createdAt)));
+            let comments: IssueComment[] = new Array();
+            response.node.comments.nodes.forEach(async comment => {
+                const user = await this._dbClient.getUserByUsername(comment.author.login);
+                comments.push(new IssueComment(user, comment.body, new Date(comment.createdAt)));
+            });
+            return comments;
         });
     }
 
