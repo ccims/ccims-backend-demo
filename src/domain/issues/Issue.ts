@@ -5,7 +5,7 @@ import { Client } from "pg";
 import { DatabaseElement } from "../DatabaseElement";
 import { DBClient } from "../DBClient";
 
-export class Issue extends DatabaseElement  {
+export class Issue {
 
     private readonly _creator: User;
 
@@ -15,14 +15,15 @@ export class Issue extends DatabaseElement  {
 
     private readonly _component: Component;
 
-    private _linkedIssues : string[]
+    private _linkedIssues: string[]
 
-    private _body : string;
+    private _body: string;
 
-    private _title : string;
+    private _title: string;
 
-    public constructor (client : DBClient, id : BigInt, component : Component, creator: User, creationDate: Date, title: string, body: string) {
-        super(client, id);
+    private _id: string;
+
+    public constructor(id: string, component: Component, creator: User, creationDate: Date, title: string, body: string) {
         this._component = component;
         this._creator = creator;
         this._creationDate = creationDate;
@@ -30,6 +31,7 @@ export class Issue extends DatabaseElement  {
         this._linkedIssues = [];
         this._title = title;
         this._body = body;
+        this._id = id;
     }
 
     private refreshLinkedIssues() {
@@ -37,7 +39,7 @@ export class Issue extends DatabaseElement  {
         //this._comments.forEach(comment => )
     }
 
-    public createComment(asUser : User, body : string) : IssueComment {
+    public createComment(asUser: User, body: string): IssueComment {
         return new IssueComment(asUser, body);
     }
 
@@ -45,7 +47,7 @@ export class Issue extends DatabaseElement  {
      * add an alredy existing IssueComment to this Issue
      * @param comment 
      */
-    public addComment(comment : IssueComment) : void {
+    public addComment(comment: IssueComment): void {
         this.refreshLinkedIssues();
     }
 
@@ -67,5 +69,9 @@ export class Issue extends DatabaseElement  {
 
     public get body(): string {
         return this._title;
+    }
+
+    public get id(): string {
+        return this._id;
     }
 }
