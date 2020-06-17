@@ -74,6 +74,11 @@ export class DBClient {
         }
     }
 
+    public async getAllIMSInfo(): Promise<IMSInfo[]> {
+        const res = await this.client.query("SELECT id FROM users");
+        return Promise.all(res.rows.map(row => row["id"]).map(id => this.getIMSInfo(id)));
+    }
+
     public async createProject(name: string, description: string, owner: User): Promise<Project> {
         return Project.create(this, name, description, owner);
     }
