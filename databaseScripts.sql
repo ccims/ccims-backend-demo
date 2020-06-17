@@ -19,8 +19,9 @@ CREATE TABLE components (
     name VARCHAR(255),
     description TEXT,
     owner INTEGER NOT NULL,
-    ims_type IMS_TYPE,
-    imsdata JSON
+    project INTEGER,
+    ims INTEGER,
+    ims_data JSON
 );
 
 CREATE TYPE ims_credential AS (

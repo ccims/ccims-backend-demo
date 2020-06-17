@@ -2,7 +2,7 @@ import { IMSInfo } from "./IMSInfo";
 import { IMSType } from "./IMSType";
 import { DBClient } from "../domain/DBClient";
 
-export class GithubIMSInfo extends IMSInfo {
+export class GitHubIMSInfo extends IMSInfo {
 
     private readonly _endpoint: string;
 
