@@ -1,6 +1,6 @@
 import { IMSCredential } from "../IMSCredential";
 import { IMSType } from "../IMSType";
-import { GitHubIMSInfo } from "../GitHubIMSInfo";
+import { GitHubIMSInfo } from "./GitHubIMSInfo";
 
 export class GitHubCredential extends IMSCredential {
 

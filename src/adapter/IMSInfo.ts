@@ -1,6 +1,6 @@
 import { IMSType } from "./IMSType";
 import { DBClient } from "../domain/DBClient";
-import { GitHubIMSInfo } from "./GitHubIMSInfo";
+import { GitHubIMSInfo } from "./github/GitHubIMSInfo";
 import { DatabaseElement } from "../domain/DatabaseElement";
 
 export class IMSInfo extends DatabaseElement {

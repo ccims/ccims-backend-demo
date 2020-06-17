@@ -1,8 +1,8 @@
 import { IMSType } from "./IMSType";
 import { TypeNode, Token } from "graphql";
-import { GitHubCredential } from "./GitHubCredential";
+import { GitHubCredential } from "./github/GitHubCredential";
 import { IMSInfo } from "./IMSInfo";
-import { GitHubIMSInfo } from "./GitHubIMSInfo";
+import { GitHubIMSInfo } from "./github/GitHubIMSInfo";
 
 export class IMSCredential {
     private readonly _info : IMSInfo;

@@ -1,6 +1,6 @@
-import { IMSInfo } from "./IMSInfo";
-import { IMSType } from "./IMSType";
-import { DBClient } from "../domain/DBClient";
+import { IMSInfo } from "../IMSInfo";
+import { IMSType } from "../IMSType";
+import { DBClient } from "../../domain/DBClient";
 
 export class GitHubIMSInfo extends IMSInfo {
 
