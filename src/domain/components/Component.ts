@@ -50,6 +50,11 @@ export class Component extends DatabaseElement {
         })
     }
 
+    protected async save(): Promise<void> {
+        this.client.query("UPDATE components SET name = $1, description = $2, owner = $3, ims = $4, ims_data = $5 WHERE id = $6", 
+            [this._name, this._description, this.ownerID, this.imsID, JSON.stringify(this.imsData), this.id]);
+    }
+
     public get name() : string {
         return this._name;
     }
