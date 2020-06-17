@@ -30,8 +30,9 @@ export class RootApiResolver {
         return null;
     }
 
-    issues(): Array<IssueResolver> {
-        return new IssueResolver(new GithubAdapter("", {}), this.dbClient);
+    issues(): Array<IssueResolver | null> {
+        //return new IssueResolver(new GithubAdapter("", {}), this.dbClient);
+        return [null];
     }
 }
 
