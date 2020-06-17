@@ -18,7 +18,7 @@ client.connect().then(async () => {
 });
 */
 client.then(client => {
-        User.createNew(client, "test", "hello world").then(user => {
+        client.createUser("test", "hello world").then(user => {
         console.log("this worked");
         console.log(user);
     });

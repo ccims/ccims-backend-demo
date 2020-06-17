@@ -2,7 +2,7 @@ import { DatabaseElement } from "../DatabaseElement";
 import { DBClient } from "../DBClient";
 import { IMSCredential } from "../../adapter/IMSCredential";
 import {Component} from "../components/Component";
-import { IMSCredentialInfo } from "../../adapter/IMSCredentialInfo";
+import { IMSInfo } from "../../adapter/IMSInfo";
 
 export class User extends DatabaseElement {
     private _userName: string;
@@ -11,7 +11,7 @@ export class User extends DatabaseElement {
 
     private componentIDs : Set<BigInt>;
 
-    private imsCredentials : Map<IMSCredentialInfo, IMSCredential>;
+    private imsCredentials : Map<IMSInfo, IMSCredential>;
 
     private constructor(client : DBClient, id : BigInt, userName : string, password : string, components : BigInt[], imsCredentials : IMSCredential[]) {
         super(client, id);
@@ -56,7 +56,7 @@ export class User extends DatabaseElement {
         this.invalidate();
     }
 
-    public removeIMSCredential(credentialInfo: IMSCredentialInfo): void {
+    public removeIMSCredential(credentialInfo: IMSInfo): void {
         this.imsCredentials.delete(credentialInfo);
         this.invalidate();
     }

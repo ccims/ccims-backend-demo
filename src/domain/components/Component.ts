@@ -2,6 +2,8 @@ import { IMSAdapter } from "../../adapter/IMSAdapter";
 import {Project} from "./Project";
 import { DBClient } from "../DBClient";
 import { DatabaseElement } from "../DatabaseElement";
+import { IMSData } from "../../adapter/IMSData";
+import { IMSInfo } from "../../adapter/IMSInfo";
 
 export class Component extends DatabaseElement {
     private readonly _name : string;
@@ -12,23 +14,27 @@ export class Component extends DatabaseElement {
 
     private readonly ownerID: BigInt;
 
-    private imsData: object;
+    private imsData: IMSData;
 
-    public constructor(client : DBClient, id: BigInt, name : string, description: string, projectID : BigInt, imsID: BigInt, ownerID: BigInt, imsData: object) {
+    public constructor(client : DBClient, id: BigInt, name : string, description: string, projectID : BigInt, imsID: BigInt, ownerID: BigInt, imsData: IMSData) {
         super(client, id);
         this._name = name;
         this.projectID = projectID;
         this.imsID = imsID;
         this.ownerID = ownerID;
+        this.imsData = imsData;
     }
 
-    public static async load(client: DBClient, id: BigInt): Component {
+    public static async create(client: DBClient, name: string, description: string, project: Project, ims: IMSInfo)
+
+    public static async load(client: DBClient, id: BigInt): Promise<Component> {
         const pg = client.client
-        return pg.query("SELECT id, username, password, components, ims_login FROM users WHERE id=$1::bigint;", [id]).then(res => {
+        return pg.query("SELECT id, name, description, owner, project, ims, ims_data FROM users WHERE id=$1::bigint;", [id]).then(res => {
             if (res.rowCount !== 1) {
-                throw new Error("illegal number of users found");
+                throw new Error("illegal number of components found");
             } else {
-                return new User(client, id, res.rows[0]["username"], res.rows[0]["password"] as string, res.rows[0]["components"], []);
+                return new Component(client, id, res.rows[0]["name"], res.rows[0]["description"], 
+                    res.rows[0]["project"], res.rows[0]["ims"], res.rows[0]["owner"], res.rows[0]["ims_data"]);
             }
         })
     }
