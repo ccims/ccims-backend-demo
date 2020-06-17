@@ -4,6 +4,7 @@ import { DBClient } from "../DBClient";
 import { DatabaseElement } from "../DatabaseElement";
 import { IMSData } from "../../adapter/IMSData";
 import { IMSInfo } from "../../adapter/IMSInfo";
+import { User } from "../users/User";
 
 export class Component extends DatabaseElement {
     private readonly _name : string;
@@ -25,7 +26,14 @@ export class Component extends DatabaseElement {
         this.imsData = imsData;
     }
 
-    public static async create(client: DBClient, name: string, description: string, project: Project, ims: IMSInfo)
+    public static async create(client: DBClient, name: string, description: string, project: Project, ims: IMSInfo, owner: User, imsData: IMSData) : Promise<Component> {
+        const pg = client.client;
+        return pg.query("INSERT INTO components (name, description, owner, project, ims, ims_data) VALUES ($1, $2, $3, $4) RETURNING id;", 
+            [name, description, owner.id, project.id, ims.id]).then(async res => {
+                const id : BigInt = res.rows[0]["id"];
+                return await Component.load(client, id);
+            });
+    }
 
     public static async load(client: DBClient, id: BigInt): Promise<Component> {
         const pg = client.client
