@@ -1,6 +1,7 @@
 import { Client, ClientConfig } from "pg";
 import {User} from "./users/User";
 import { IMSInfo } from "../adapter/IMSInfo";
+import { IMSInfoProvider } from "../adapter/IMSInfoProvider";
 
 export class DBClient {
     private readonly _client : Client;
@@ -25,7 +26,9 @@ export class DBClient {
     }
 
     public async createUser(userName : string, password : string): Promise<User> {
-        return User.create(this, userName, password);
+        return this.getUserByUsername(userName).then(
+            () => {throw new Error("username already in use")},
+            async () => User.create(this, userName, password));
     }
 
     public async getUser(id: BigInt): Promise<User> {
@@ -38,11 +41,20 @@ export class DBClient {
         }
     }
 
+    public async getUserByUsername(username: String): Promise<User> {
+        const res = await this.client.query("SELECT id FROM users WHERE username = $1", [username]);
+        if (res.rowCount == 1) {
+            return this.getUser(res.rows[0]["id"]);
+        } else {
+            throw new Error("no user found");
+        }
+    }
+
     public async getIMSInfo(id: BigInt): Promise<IMSInfo> {
         if (this.imsInfos.has(id)) {
             return this.imsInfos.get(id) as IMSInfo;
         } else {
-            const newInfo = await IMSInfo.load(this, id);
+            const newInfo = await IMSInfoProvider.load(this, id);
             this.imsInfos.set(id, newInfo);
             return newInfo;
         }

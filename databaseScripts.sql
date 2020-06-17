@@ -35,7 +35,7 @@ CREATE TABLE issue_managemant_systems (
     data TEXT
 );
 
-INSERT INTO issue_managemant_systems type, data VALUE(GitHub,'https://api.github.com/graphql');
+INSERT INTO issue_managemant_systems (type, data) VALUES ('GitHub','https://api.github.com/graphql');
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,

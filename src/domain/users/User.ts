@@ -23,7 +23,7 @@ export class User extends DatabaseElement {
     }
 
     public static async load(client : DBClient, id : BigInt) : Promise<User> {
-        const pg = client.client
+        const pg = client.client;
         return pg.query("SELECT id, username, password, components, ims_login FROM users WHERE id=$1::bigint;", [id]).then(res => {
             if (res.rowCount !== 1) {
                 throw new Error("illegal number of users found");
@@ -40,6 +40,11 @@ export class User extends DatabaseElement {
                 const id : BigInt = res.rows[0]["id"];
                 return await User.load(client, id);
             });
+    }
+
+    protected async save(): Promise<void> {
+        this.client.query("UPDATE users SET username = $1, password = $2, components = $3, ims_login = $4 WHERE id = $5", 
+            [this._userName, this._password, this.componentIDs, Array.from(this.imsCredentials, ([key, value]) => value.getData()), this.id]);
     }
 
     public addComponent(component : Component): void {
@@ -72,10 +77,21 @@ export class User extends DatabaseElement {
 
     public set userName(userName: string) {
         this._userName = userName;
+        this.invalidate();
     }
 
     public static byUserName(username: string): User | undefined {
         return undefined;
     }
+
+    
+    public get password() : string {
+        return this._password;
+    }
+    public set password(password : string) {
+        this._password = password;
+        this.invalidate();
+    }
+    
     
 }
