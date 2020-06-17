@@ -18,10 +18,10 @@ client.connect().then(async () => {
 });
 */
 client.then(client => {
-    client.createUser("test", "hello world").then(user => {
+    /*client.createUser("test", "hello world").then(user => {
         console.log("this worked");
         console.log(user);
-    });
+    });*/
     new CcimsApi(8080, client).start();
 })
 
