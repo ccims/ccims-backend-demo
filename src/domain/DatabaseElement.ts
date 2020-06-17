@@ -16,10 +16,10 @@ export class DatabaseElement {
         this._id = id;
     }
 
-    public saveToDB(): void {
+    public async saveToDB(): Promise<void> {
         if (this.needsSave) {
             this.needsSave = false;
-            this.save();
+            await this.save();
         }
     }
 
@@ -28,7 +28,7 @@ export class DatabaseElement {
      * this is called to syc data to the database
      * I know that this is not the most efficient way of doing this, but it will work for now
      */
-    protected save() : void {
+    protected async save() : Promise<void> {
         
     }
 

@@ -50,4 +50,8 @@ export class Component extends DatabaseElement {
     public get name() : string {
         return this._name;
     }
+
+    public async getIMSInfo(): Promise<IMSInfo> {
+        return this.imsClient.getIMSInfo(this.imsID);
+    }
 }

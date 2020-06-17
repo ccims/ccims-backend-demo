@@ -1,14 +1,17 @@
 import { Client, ClientConfig } from "pg";
 import {User} from "./users/User";
+import { IMSInfo } from "../adapter/IMSInfo";
 
 export class DBClient {
     private readonly _client : Client;
 
     private readonly users: Map<BigInt, User>;
+    private readonly imsInfos: Map<BigInt, IMSInfo>;
 
     private constructor(client : Client) {
         this._client = client;
         this.users = new Map();
+        this.imsInfos = new Map();
     }
 
     public static async create(config: ClientConfig): Promise<DBClient> {
@@ -33,6 +36,17 @@ export class DBClient {
             this.users.set(id, newUser);
             return newUser;
         }
+    }
+
+    public async getIMSInfo(id: BigInt): Promise<IMSInfo> {
+        if (this.imsInfos.has(id)) {
+            return this.imsInfos.get(id) as IMSInfo;
+        } else {
+            const newInfo = await IMSInfo.load(this, id);
+            this.imsInfos.set(id, newInfo);
+            return newInfo;
+        }
+        
     }
 
     public save(): void {
