@@ -1,14 +1,14 @@
 import { Client, ClientConfig } from "pg";
-import {User} from "./users/User";
+import { User } from "./users/User";
 import { IMSInfo } from "../adapter/IMSInfo";
 
 export class DBClient {
-    private readonly _client : Client;
+    private readonly _client: Client;
 
     private readonly users: Map<BigInt, User>;
     private readonly imsInfos: Map<BigInt, IMSInfo>;
 
-    private constructor(client : Client) {
+    private constructor(client: Client) {
         this._client = client;
         this.users = new Map();
         this.imsInfos = new Map();
@@ -20,11 +20,11 @@ export class DBClient {
         return new DBClient(client);
     }
 
-    public get client() : Client {
+    public get client(): Client {
         return this._client;
     }
 
-    public async createUser(userName : string, password : string): Promise<User> {
+    public async createUser(userName: string, password: string): Promise<User> {
         return User.create(this, userName, password);
     }
 
@@ -46,7 +46,7 @@ export class DBClient {
             this.imsInfos.set(id, newInfo);
             return newInfo;
         }
-        
+
     }
 
     public save(): void {

@@ -33,7 +33,7 @@ export class GithubAdapter implements IMSAdapter {
             }
         });
         return client.request<githubTypes.IssueRequest>(`query {
-            repository(name:"` + this._imsData.repository + `", owner:"` + this._imsData.owner + `") {
+            repository(name:"${this._imsData.repository}", owner:"${this._imsData.owner}") {
                 issues (first: 100) {
                     nodes {
                         author {
@@ -58,7 +58,7 @@ export class GithubAdapter implements IMSAdapter {
             }
         });
         return client.request<githubTypes.CommentRequest>(`query {
-            node(id:"` + issue.id + `") {
+            node(id:"${issue.id}") {
                 comments (first: 100) {
                     nodes {
                         author {
@@ -70,7 +70,7 @@ export class GithubAdapter implements IMSAdapter {
                 }
             }
         }`).then((response: githubTypes.CommentRequest): IssueComment[] => {
-            return response.node.comments.nodes.map(comment => new IssueComment(this._dbClient.getUser(comment.author.login), comment.body, new Date(comment.createdAt)));
+            return response.node.comments.nodes.map(comment => issue.createComment(this._dbClient.getUser(comment.author.login), comment.body, new Date(comment.createdAt)));
         });
     }
 

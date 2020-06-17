@@ -7,24 +7,29 @@ import * as graphql from "graphql";
 import * as fs from "fs";
 import { RootApiResolver } from "./RootApiResolver";
 import path from "path";
+import { DBClient } from "../domain/DBClient";
+import { tokenResponseRouter } from "./tokenResponseRouter";
 
 export class CcimsApi {
 
-    private port: number;
-    private expressServer: expCore.Express;
-    private schema: graphql.GraphQLSchema | undefined;
+    private readonly port: number;
+    private readonly expressServer: expCore.Express;
+    private readonly schema: graphql.GraphQLSchema | undefined;
     //private apolloServer: ApolloServer | undefined;
+    private readonly dbClient: DBClient;
 
-    public constructor(port: number) {
+    public constructor(port: number, dbClient: DBClient) {
         this.port = port;
         //this.apolloServer = undefined;
         this.expressServer = Express();
         this.schema = graphql.buildSchema(fs.readFileSync("schemas/schema.graphql").toString());
         this.expressServer.use("/api", graphqlHTTP({
             schema: this.schema,
-            rootValue: new RootApiResolver(),
+            rootValue: new RootApiResolver(dbClient),
             graphiql: true
-        }))
+        }));
+        this.expressServer.use("/tokenResponse", tokenResponseRouter);
+        this.dbClient = dbClient;
     }
 
     public async start() {

@@ -1,13 +1,16 @@
 import { Issue } from "../domain/issues/Issue";
 import { CommentResolver } from "./CommentResolver";
 import marked from "marked";
+import { DBClient } from "../domain/DBClient";
 
 export class IssueResolver {
 
     private readonly issue: Issue;
+    private readonly dbClient: DBClient;
 
-    public constructor(issue: Issue) {
+    public constructor(issue: Issue, dbClient: DBClient) {
         this.issue = issue;
+        this.dbClient = dbClient;
     }
 
     public title(): string {
@@ -23,6 +26,6 @@ export class IssueResolver {
     }
 
     public comments(): Array<CommentResolver> {
-        return this.issue.comments.map(comment => new CommentResolver(comment));
+        return this.issue.comments.map(comment => new CommentResolver(comment, this.dbClient));
     }
 }
