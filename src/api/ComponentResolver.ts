@@ -1,13 +1,16 @@
 import { Component } from "../domain/components/Component";
 import { IssueResolver } from "./IssueResolver";
 import { ProjectResolver } from "./ProjectResolver";
+import { DBClient } from "../domain/DBClient";
 
 export class ComponentResolver {
 
-    private component: Component;
+    private readonly component: Component;
+    private readonly dbClient: DBClient;
 
-    public constructor(component: Component) {
+    public constructor(component: Component, dbClient: DBClient) {
         this.component = component;
+        this.dbClient = dbClient;
     }
 
     public name(): string {

@@ -39,8 +39,8 @@ export class Issue {
         //this._comments.forEach(comment => )
     }
 
-    public createComment(asUser: User, body: string): IssueComment {
-        return new IssueComment(asUser, body, new Date());
+    public createComment(asUser: User, body: string, creationDate: Date): IssueComment {
+        return new IssueComment(asUser, body, creationDate);
     }
 
     /**

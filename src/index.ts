@@ -2,7 +2,7 @@ import * as pg from "pg";
 import { config } from "./config";
 import { CcimsApi } from "./api/ccimsApi";
 import { User } from "./domain/users/User";
-import {DBClient} from "./domain/DBClient";
+import { DBClient } from "./domain/DBClient";
 
 const pgOptions: pg.ClientConfig = {
     user: config.postgres.username,
@@ -18,14 +18,14 @@ client.connect().then(async () => {
 });
 */
 client.then(client => {
-        client.createUser("test", "hello world").then(user => {
+    client.createUser("test", "hello world").then(user => {
         console.log("this worked");
         console.log(user);
     });
+    new CcimsApi(8080, client).start();
 })
 
 
 
-new CcimsApi(8080).start();
 
 console.log("Hello ccims");

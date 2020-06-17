@@ -1,5 +1,5 @@
 import { Client, ClientConfig } from "pg";
-import {User} from "./users/User";
+import { User } from "./users/User";
 import { IMSInfo } from "../adapter/IMSInfo";
 import { IMSInfoProvider } from "../adapter/IMSInfoProvider";
 import { DummyUser } from "./users/DummyUser";
@@ -9,7 +9,7 @@ import { IMSCredential } from "../adapter/IMSCredential";
 import { IMSData } from "../adapter/IMSData";
 
 export class DBClient {
-    private readonly _client : Client;
+    private readonly _client: Client;
 
     private readonly _defaultUser: User;
 
@@ -18,7 +18,7 @@ export class DBClient {
     private readonly projects: Map<BigInt, Project>;
     private readonly components: Map<BigInt, Component>;
 
-    private constructor(client : Client) {
+    private constructor(client: Client) {
         this._client = client;
         this.users = new Map();
         this.imsInfos = new Map();
@@ -35,13 +35,13 @@ export class DBClient {
         return new DBClient(client);
     }
 
-    public get client() : Client {
+    public get client(): Client {
         return this._client;
     }
 
-    public async createUser(userName : string, password : string): Promise<User> {
+    public async createUser(userName: string, password: string): Promise<User> {
         return this.getUserByUsername(userName).then(
-            () => {throw new Error("username already in use")},
+            () => { throw new Error("username already in use") },
             async () => User.create(this, userName, password));
     }
 

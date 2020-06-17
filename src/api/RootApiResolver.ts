@@ -1,8 +1,16 @@
 import { IssueResolver } from "./IssueResolver";
 import { UserResolver } from "./UserResolver";
 import { User } from "../domain/users/User";
+import { DBClient } from "../domain/DBClient";
+import { GithubAdapter } from "../adapter/github/GithubAdapter";
 
 export class RootApiResolver {
+
+    private readonly dbClient: DBClient;
+
+    constructor(dbClient: DBClient) {
+        this.dbClient = dbClient;
+    }
 
     hello(): string {
         return "world";
@@ -16,14 +24,15 @@ export class RootApiResolver {
         if (getUserArgs.username) {
             const user = User.byUserName(getUserArgs.username);
             if (user) {
-                return new UserResolver(user);
+                return new UserResolver(user, this.dbClient);
             }
         }
         return null;
     }
 
-    issue(id: string): IssueResolver | null {
-        return null;
+    issues(): Array<IssueResolver | null> {
+        //return new IssueResolver(new GithubAdapter("", {}), this.dbClient);
+        return [null];
     }
 }
 
