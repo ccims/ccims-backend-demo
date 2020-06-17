@@ -22,10 +22,10 @@ client.then(client => {
         console.log("this worked");
         console.log(user);
     });
+    new CcimsApi(8080, client).start();
 })
 
 
 
-new CcimsApi(8080, client).start();
 
 console.log("Hello ccims");
