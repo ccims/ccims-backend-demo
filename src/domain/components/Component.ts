@@ -7,23 +7,26 @@ import { IMSInfo } from "../../adapter/IMSInfo";
 import { User } from "../users/User";
 
 export class Component extends DatabaseElement {
-    private readonly _name : string;
+    private _name : string;
+
+    private _description: string;
 
     private readonly projectID: BigInt;
 
     private imsID: BigInt;
 
-    private readonly ownerID: BigInt;
+    private ownerID: BigInt;
 
-    private imsData: IMSData;
+    private _imsData: IMSData;
 
     public constructor(client : DBClient, id: BigInt, name : string, description: string, projectID : BigInt, imsID: BigInt, ownerID: BigInt, imsData: IMSData) {
         super(client, id);
         this._name = name;
+        this._description = description;
         this.projectID = projectID;
         this.imsID = imsID;
         this.ownerID = ownerID;
-        this.imsData = imsData;
+        this._imsData = imsData;
     }
 
     public static async create(client: DBClient, name: string, description: string, project: Project, ims: IMSInfo, owner: User, imsData: IMSData) : Promise<Component> {
@@ -37,7 +40,7 @@ export class Component extends DatabaseElement {
 
     public static async load(client: DBClient, id: BigInt): Promise<Component> {
         const pg = client.client
-        return pg.query("SELECT id, name, description, owner, project, ims, ims_data FROM users WHERE id=$1::bigint;", [id]).then(res => {
+        return pg.query("SELECT id, name, description, owner, project, ims, ims_data FROM components WHERE id=$1::bigint;", [id]).then(res => {
             if (res.rowCount !== 1) {
                 throw new Error("illegal number of components found");
             } else {
@@ -51,7 +54,43 @@ export class Component extends DatabaseElement {
         return this._name;
     }
 
+    public set name(name: string) {
+        this._name = name;
+        this.invalidate();
+    }
+
+    public get description(): string {
+        return this._description;
+    }
+
+    public set description(description: string) {
+        this._description = description;
+        this.invalidate();
+    }
+
     public async getIMSInfo(): Promise<IMSInfo> {
         return this.imsClient.getIMSInfo(this.imsID);
+    }
+
+    public async getOwner(): Promise<User> {
+        return this.imsClient.getUser(this.ownerID);
+    }
+
+    public setOwner(owner: User): void {
+        this.ownerID = owner.id;
+        this.invalidate();
+    }
+
+    public get imsData(): IMSData {
+        return this._imsData
+    }
+
+    public set imsData(imsData: IMSData) {
+        this._imsData = imsData;
+        this.invalidate();
+    }
+
+    public async getProject(): Promise<Project> {
+        return this.imsClient.getProject(this.projectID);
     }
 }

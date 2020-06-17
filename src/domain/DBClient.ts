@@ -3,6 +3,10 @@ import {User} from "./users/User";
 import { IMSInfo } from "../adapter/IMSInfo";
 import { IMSInfoProvider } from "../adapter/IMSInfoProvider";
 import { DummyUser } from "./users/DummyUser";
+import { Project } from "./components/Project";
+import { Component } from "./components/Component";
+import { IMSCredential } from "../adapter/IMSCredential";
+import { IMSData } from "../adapter/IMSData";
 
 export class DBClient {
     private readonly _client : Client;
@@ -11,11 +15,16 @@ export class DBClient {
 
     private readonly users: Map<BigInt, User>;
     private readonly imsInfos: Map<BigInt, IMSInfo>;
+    private readonly projects: Map<BigInt, Project>;
+    private readonly components: Map<BigInt, Component>;
 
     private constructor(client : Client) {
         this._client = client;
         this.users = new Map();
         this.imsInfos = new Map();
+        this.projects = new Map();
+        this.components = new Map();
+
         this._defaultUser = new DummyUser(this);
         this.users.set(this._defaultUser.id, this._defaultUser);
     }
@@ -63,7 +72,34 @@ export class DBClient {
             this.imsInfos.set(id, newInfo);
             return newInfo;
         }
-        
+    }
+
+    public async createProject(name: string, description: string, owner: User): Promise<Project> {
+        return Project.create(this, name, description, owner);
+    }
+
+    public async getProject(id: BigInt): Promise<Project> {
+        if (this.projects.has(id)) {
+            return this.projects.get(id) as Project;
+        } else {
+            const newProject = await Project.load(this, id);
+            this.projects.set(id, newProject);
+            return newProject;
+        }
+    }
+
+    public async createComponent(name: string, description: string, project: Project, ims: IMSInfo, owner: User, imsData: IMSData): Promise<Component> {
+        return Component.create(this, name, description, project, ims, owner, imsData);
+    }
+
+    public async getComponent(id: BigInt): Promise<Component> {
+        if (this.components.has(id)) {
+            return this.components.get(id) as Component;
+        } else {
+            const newComponent = await Component.load(this, id);
+            this.components.set(id, newComponent);
+            return newComponent;
+        }
     }
 
     public get defaultUser(): User {
