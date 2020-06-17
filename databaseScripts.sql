@@ -24,9 +24,17 @@ CREATE TABLE components (
 );
 
 CREATE TYPE ims_credential AS (
-    type IMS_TYPE,
+    type integer,
     secret TEXT
 );
+
+CREATE TABLE issue_managemant_systems (
+    id SERIAL PRIMARY KEY,
+    type IMS_TYPE,
+    data TEXT
+);
+
+INSERT INTO issue_managemant_systems type, data VALUE(GitHub,'https://api.github.com/graphql');
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,

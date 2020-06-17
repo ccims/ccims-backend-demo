@@ -1,23 +1,25 @@
 import { DatabaseElement } from "../DatabaseElement";
 import { DBClient } from "../DBClient";
-import { IMSCrendential } from "../../adapter/IMSCredential";
+import { IMSCredential } from "../../adapter/IMSCredential";
 import {Component} from "../components/Component";
+import { IMSCredentialInfo } from "../../adapter/IMSCredentialInfo";
 
 export class User extends DatabaseElement {
     private _userName: string;
 
     private _password: string;
 
-    private componentIDs : string[];
+    private componentIDs : Set<BigInt>;
 
-    private imsCredentials : IMSCrendential[];
+    private imsCredentials : Map<IMSCredentialInfo, IMSCredential>;
 
-    private constructor(client : DBClient, id : BigInt, userName : string, password : string, components : string[], imsCredentials : IMSCrendential[]) {
+    private constructor(client : DBClient, id : BigInt, userName : string, password : string, components : BigInt[], imsCredentials : IMSCredential[]) {
         super(client, id);
         this._userName = userName;
         this._password = password;
-        this.componentIDs = components;
-        this.imsCredentials = imsCredentials;
+        this.componentIDs = new Set(components);
+        this.imsCredentials = new Map();
+        imsCredentials.forEach(credential => this.imsCredentials.set(credential.info, credential))
     }
 
     public static async load(client : DBClient, id : BigInt) : Promise<User> {
@@ -31,7 +33,7 @@ export class User extends DatabaseElement {
         })
     }
 
-    public static async createNew(client: DBClient, userName : string, password : string): Promise<User> {
+    public static async create(client: DBClient, userName : string, password : string): Promise<User> {
         const pg = client.client;
         return pg.query("INSERT INTO users (username, password, components, ims_login) VALUES ($1, $2, $3, $4) RETURNING id;", [userName, password, [], []]).then(async res => {
             const id : BigInt = res.rows[0]["id"];
@@ -40,7 +42,23 @@ export class User extends DatabaseElement {
     }
 
     public addComponent(component : Component): void {
+        this.componentIDs.add(component.id);
+        this.invalidate();
+    }
 
+    public removeComponent(component: Component): void {
+        this.componentIDs.delete(component.id);
+        this.invalidate();
+    }
+
+    public addIMSCredential(credential: IMSCredential) {
+        this.imsCredentials.set(credential.info, credential);
+        this.invalidate();
+    }
+
+    public removeIMSCredential(credentialInfo: IMSCredentialInfo): void {
+        this.imsCredentials.delete(credentialInfo);
+        this.invalidate();
     }
 
     public get userName(): string {
@@ -54,4 +72,5 @@ export class User extends DatabaseElement {
     public static byUserName(username: string): User | undefined {
         return undefined;
     }
+    
 }

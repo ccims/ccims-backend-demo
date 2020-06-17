@@ -1,12 +1,13 @@
-import { IMSCrendential } from "./IMSCredential";
+import { IMSCredential } from "./IMSCredential";
 import { IMSType } from "./IMSType";
+import { GithubCredentialInfo } from "./GithubCredentialInfo";
 
-export class GitHubCredential extends IMSCrendential {
+export class GitHubCredential extends IMSCredential {
 
     private readonly _oAuthToken : string;
 
-    public constructor(token: string) {
-        super(IMSType.GitHub);
+    public constructor(info : GithubCredentialInfo, token: string) {
+        super(info);
         this._oAuthToken = token;
     }
 

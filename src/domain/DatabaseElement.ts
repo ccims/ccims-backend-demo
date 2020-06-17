@@ -8,6 +8,8 @@ export class DatabaseElement {
 
     protected readonly imsClient : DBClient;
 
+    private needsSave : boolean = false;
+
     protected constructor(client : DBClient, id : BigInt) {
         this.imsClient = client;
         this.client = client.client;
@@ -15,7 +17,23 @@ export class DatabaseElement {
     }
 
     public saveToDB(): void {
+        if (this.needsSave) {
+            this.needsSave = false;
+            this.save();
+        }
+    }
 
+    /**
+     * overwrite this to implement save funktionality
+     * this is called to syc data to the database
+     * I know that this is not the most efficient way of doing this, but it will work for now
+     */
+    protected save() : void {
+        
+    }
+
+    protected invalidate() : void {
+        this.needsSave = true;
     }
 
     public get id() : BigInt {

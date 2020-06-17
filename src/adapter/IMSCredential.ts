@@ -1,22 +1,24 @@
 import { IMSType } from "./IMSType";
 import { TypeNode, Token } from "graphql";
 import { GitHubCredential } from "./GitHubCredential";
+import { IMSCredentialInfo } from "./IMSCredentialInfo";
+import { GithubCredentialInfo } from "./GithubCredentialInfo";
 
-export class IMSCrendential {
-    private readonly _type : IMSType;
+export class IMSCredential {
+    private readonly _info : IMSCredentialInfo;
 
-    protected constructor(type : IMSType) {
-        this._type = type;
+    protected constructor(info : IMSCredentialInfo) {
+        this._info = info;
     }
 
-    public get type() : IMSType {
-        return this._type;
+    public get info() : IMSCredentialInfo {
+        return this._info;
     }
 
-    public static parse(type : string, data : string) : IMSCrendential {
-        switch (IMSType[type  as keyof typeof IMSType]) {
+    public static parse(info: IMSCredentialInfo, data : string) : IMSCredential {
+        switch (info.type) {
             case IMSType.GitHub:
-                return new GitHubCredential(data);
+                return new GitHubCredential(info as GithubCredentialInfo, data);
             default:
                 throw new Error("no type");
         }
