@@ -3,19 +3,71 @@ import {Client} from "pg";
 import { DatabaseElement } from "../DatabaseElement";
 import { DBClient } from "../DBClient";
 import { ExecFileSyncOptionsWithStringEncoding } from "child_process";
+import { User } from "../users/User";
 
 export class Project extends DatabaseElement {
-    private components : string[];
+    
+    private _name: string;
 
-    private readonly _name: string;
+    private _description: string;
 
-    public constructor(client : DBClient, id : BigInt, name : string, components : string[]) {
+    private componentIDs: Set<BigInt>;
+
+    private ownerID: BigInt;
+
+    private constructor(client : DBClient, id : BigInt, name : string, description: string, components : BigInt[], ownerID: BigInt) {
         super(client, id);
         this._name = name;
-        this.components = components;
+        this._description = description;
+        this.componentIDs = new Set(components);
+        this.ownerID = ownerID;
+    }
+
+    public static async create(client: DBClient, name: string, description: string, owner: User) : Promise<Project> {
+        const pg = client.client;
+        return pg.query("INSERT INTO components (name, description, components, owner) VALUES ($1, $2, $3, $4) RETURNING id;", 
+            [name, description, [], owner.id]).then(async res => {
+                const id : BigInt = res.rows[0]["id"];
+                return await Project.load(client, id);
+            });
+    }
+
+    public static async load(client: DBClient, id: BigInt): Promise<Project> {
+        const pg = client.client
+        return pg.query("SELECT name, description, components, owner FROM projects WHERE id=$1::bigint;", [id]).then(res => {
+            if (res.rowCount !== 1) {
+                throw new Error("illegal number of components found");
+            } else {
+                return new Project(client, id, res.rows[0]["name"], res.rows[0]["description"], res.rows[0]["components"], res.rows[0]["owner"]);
+            }
+        })
     }
 
     public get name(): string {
         return this._name;
-    }  
+    } 
+    
+    public set name(name: string) {
+        this._name = name;
+        this.invalidate();
+    }
+
+    public get description(): string {
+        return this._description;
+    }
+
+    public set description(description: string) {
+        this._description = description;
+        this.invalidate();
+    }
+
+    public addComponent(component : Component): void {
+        this.componentIDs.add(component.id);
+        this.invalidate();
+    }
+
+    public removeComponent(component: Component): void {
+        this.componentIDs.delete(component.id);
+        this.invalidate();
+    }
 }
