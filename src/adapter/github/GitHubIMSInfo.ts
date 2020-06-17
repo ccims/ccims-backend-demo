@@ -6,15 +6,19 @@ export class GitHubIMSInfo extends IMSInfo {
 
     private readonly _endpoint: string;
     private readonly _clientId: string;
+    private readonly _clientSecret: string;
+    private readonly _redirectUri: string;
 
     public constructor(client: DBClient, id: BigInt, data: string) {
         super(client, id, IMSType.GitHub);
         const dataParsed = JSON.parse(data) as GithubImsData;
         if (!GitHubIMSInfo.isGithubData(dataParsed)) {
-            throw new Error("The given data wasn''t github data");
+            throw new Error("The given data wasn't github data");
         }
         this._endpoint = dataParsed.endpoint;
         this._clientId = dataParsed.clientId;
+        this._clientSecret = dataParsed.clientSecret;
+        this._redirectUri = dataParsed.redirectUri;
     }
 
     public static async create(client: DBClient, endpoint: string): Promise<GitHubIMSInfo> {
@@ -32,12 +36,22 @@ export class GitHubIMSInfo extends IMSInfo {
         return this._clientId;
     }
 
+    public get clientSecret(): string {
+        return this.clientSecret;
+    }
+
+    public get redirectUri(): string {
+        return this._redirectUri;
+    }
+
     private static isGithubData(data: GithubImsData): boolean {
-        return typeof data.clientId === "string" && typeof data.endpoint === "string";
+        return typeof data.clientId === "string" && typeof data.endpoint === "string" && typeof data.clientSecret === "string" && typeof data.redirectUri === "string";
     }
 }
 
 interface GithubImsData {
     endpoint: string;
     clientId: string;
+    clientSecret: string;
+    redirectUri: string;
 }

@@ -38,7 +38,7 @@ CREATE TABLE issue_management_systems (
     data TEXT
 );
 
-INSERT INTO issue_management_systems (type, data) VALUES ('GitHub','{"endpoint":"https://api.github.com/graphql", "clientId":"000000"}');
+INSERT INTO issue_management_systems (type, data) VALUES ('GitHub','{"endpoint":"https://api.github.com/graphql", "clientId":"0000", "clientSecret":"0000","redirectUri":"hallo"}');
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
