@@ -1,8 +1,11 @@
-DROP DATABASE ccims;
+DROP TABLE projects;
+DROP TABLE components;
+DROP TABLE issue_management_systems;
+DROP TABLE users;
+DROP TYPE ims_type;
+DROP TYPE ims_credential;
 
-CREATE DATABASE ccims;
-
-\connect ccims
+--\connect ccims
 
 CREATE TABLE projects (
     id SERIAL PRIMARY KEY,
