@@ -25,7 +25,7 @@ CREATE TABLE components (
 );
 
 CREATE TYPE ims_credential AS (
-    type integer,
+    ims integer,
     secret TEXT
 );
 

@@ -35,10 +35,11 @@ export class User extends DatabaseElement {
 
     public static async create(client: DBClient, userName : string, password : string): Promise<User> {
         const pg = client.client;
-        return pg.query("INSERT INTO users (username, password, components, ims_login) VALUES ($1, $2, $3, $4) RETURNING id;", [userName, password, [], []]).then(async res => {
-            const id : BigInt = res.rows[0]["id"];
-            return await User.load(client, id);
-        });
+        return pg.query("INSERT INTO users (username, password, components, ims_login) VALUES ($1, $2, $3, $4) RETURNING id;", 
+            [userName, password, [], []]).then(async res => {
+                const id : BigInt = res.rows[0]["id"];
+                return await User.load(client, id);
+            });
     }
 
     public addComponent(component : Component): void {
@@ -59,6 +60,10 @@ export class User extends DatabaseElement {
     public removeIMSCredential(credentialInfo: IMSInfo): void {
         this.imsCredentials.delete(credentialInfo);
         this.invalidate();
+    }
+
+    public getIMSCredential(info: IMSInfo): IMSCredential | undefined {
+        return this.imsCredentials.get(info);
     }
 
     public get userName(): string {
