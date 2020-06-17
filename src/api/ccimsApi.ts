@@ -9,12 +9,13 @@ import { RootApiResolver } from "./RootApiResolver";
 import path from "path";
 import { DBClient } from "../domain/DBClient";
 import { tokenResponseRouter } from "./tokenResponseRouter";
+import { tokenRequestRouter } from "./tokenRequestRouter";
 
 export class CcimsApi {
 
     private readonly port: number;
     private readonly expressServer: expCore.Express;
-    private readonly schema: graphql.GraphQLSchema | undefined;
+    private readonly schema: graphql.GraphQLSchema;
     //private apolloServer: ApolloServer | undefined;
     private readonly dbClient: DBClient;
 
@@ -23,12 +24,6 @@ export class CcimsApi {
         //this.apolloServer = undefined;
         this.expressServer = Express();
         this.schema = graphql.buildSchema(fs.readFileSync("schemas/schema.graphql").toString());
-        this.expressServer.use("/api", graphqlHTTP({
-            schema: this.schema,
-            rootValue: new RootApiResolver(dbClient),
-            graphiql: true
-        }));
-        this.expressServer.use("/tokenResponse", tokenResponseRouter);
         this.dbClient = dbClient;
     }
 
@@ -41,7 +36,14 @@ export class CcimsApi {
             app: this.expressServer
         });
         */
-
+        this.expressServer.use("/api", graphqlHTTP({
+            schema: this.schema,
+            rootValue: new RootApiResolver(this.dbClient),
+            graphiql: true
+        }));
+        const requestRouter = await tokenRequestRouter(this.dbClient);
+        this.expressServer.use("/tokenResponse", tokenResponseRouter);
+        this.expressServer.use("/tokenRequest", requestRouter);
         this.expressServer.listen({ port: this.port }, console.error);
         console.log("Started api");
     }

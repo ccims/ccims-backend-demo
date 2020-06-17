@@ -17,8 +17,12 @@ export class GitHubIMSInfo extends IMSInfo {
         this._clientId = dataParsed.clientId;
     }
 
-    public get endpoint() {
+    public get endpoint(): string {
         return this._endpoint;
+    }
+
+    public get clientId(): string {
+        return this._clientId;
     }
 
     private static isGithubData(data: GithubImsData): boolean {
