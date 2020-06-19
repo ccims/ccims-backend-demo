@@ -27,11 +27,6 @@ CREATE TABLE components (
     ims_data JSON
 );
 
-CREATE TYPE ims_credential AS (
-    ims integer,
-    secret TEXT
-);
-
 CREATE TABLE issue_management_systems (
     id SERIAL PRIMARY KEY,
     type IMS_TYPE,
@@ -45,5 +40,5 @@ CREATE TABLE users (
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     components INTEGER[] NOT NULL,
-    ims_login IMS_CREDENTIAL[] NOT NULL
+    ims_login JSON[] NOT NULL
 );

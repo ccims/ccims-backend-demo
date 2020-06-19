@@ -28,6 +28,8 @@ export class User extends DatabaseElement {
             if (res.rowCount !== 1) {
                 throw new Error("illegal number of users found");
             } else {
+                console.log(res.rows[0]["ims_login"]);
+                console.log(res.rows[0]["components"]);
                 return new User(client, id, res.rows[0]["username"], res.rows[0]["password"] as string, res.rows[0]["components"], []);
             }
         })
@@ -35,8 +37,9 @@ export class User extends DatabaseElement {
 
     public static async create(client: DBClient, userName : string, password : string): Promise<User> {
         const pg = client.client;
+        var test: object = JSON.parse('{"test": "testing", "alsoTest": "ILikeThis"}');
         return pg.query("INSERT INTO users (username, password, components, ims_login) VALUES ($1, $2, $3, $4) RETURNING id;", 
-            [userName, password, [], []]).then(async res => {
+            [userName, password, [], [test]]).then(async res => {
                 const id : BigInt = res.rows[0]["id"];
                 return await User.load(client, id);
             });
@@ -44,7 +47,7 @@ export class User extends DatabaseElement {
 
     protected async save(): Promise<void> {
         this.client.query("UPDATE users SET username = $1, password = $2, components = $3, ims_login = $4 WHERE id = $5", 
-            [this._userName, this._password, this.componentIDs, Array.from(this.imsCredentials, ([key, value]) => value.getData()), this.id]);
+            [this._userName, this._password, this.componentIDs, Array.from(this.imsCredentials, ([key, value]) => [2, "test"]), this.id]);
     }
 
     public addComponent(component : Component): void {

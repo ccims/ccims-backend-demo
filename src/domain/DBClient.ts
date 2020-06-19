@@ -40,9 +40,11 @@ export class DBClient {
     }
 
     public async createUser(userName: string, password: string): Promise<User> {
-        return this.getUserByUsername(userName).then(
+        const newUser = await this.getUserByUsername(userName).then(
             () => { throw new Error("username already in use") },
             async () => User.create(this, userName, password));
+        this.users.set(newUser.id, newUser);
+        return newUser;
     }
 
     public async getUser(id: BigInt): Promise<User> {
@@ -75,12 +77,14 @@ export class DBClient {
     }
 
     public async getAllIMSInfo(): Promise<IMSInfo[]> {
-        const res = await this.client.query("SELECT id FROM users");
+        const res = await this.client.query("SELECT id FROM issue_management_systems");
         return Promise.all(res.rows.map(row => row["id"]).map(id => this.getIMSInfo(id)));
     }
 
     public async createProject(name: string, description: string, owner: User): Promise<Project> {
-        return Project.create(this, name, description, owner);
+        const newProject = await Project.create(this, name, description, owner);
+        this.projects.set(newProject.id, newProject);
+        return newProject;
     }
 
     public async getProject(id: BigInt): Promise<Project> {
@@ -94,7 +98,9 @@ export class DBClient {
     }
 
     public async createComponent(name: string, description: string, project: Project, ims: IMSInfo, owner: User, imsData: IMSData): Promise<Component> {
-        return Component.create(this, name, description, project, ims, owner, imsData);
+        const newComponent = await Component.create(this, name, description, project, ims, owner, imsData);
+        this.components.set(newComponent.id, newComponent);
+        return newComponent;
     }
 
     public async getComponent(id: BigInt): Promise<Component> {
@@ -111,8 +117,11 @@ export class DBClient {
         return this._defaultUser;
     }
 
-    public save(): void {
-        this.users.forEach(user => user.saveToDB());
+    public async save(): Promise<void> {
+        await Promise.all(Array.from(this.users, ([id, user]) => user.saveToDB()));
+        await Promise.all(Array.from(this.projects, ([id, project]) => project.saveToDB()));
+        await Promise.all(Array.from(this.components, ([id, component]) => component.saveToDB()));
+        await Promise.all(Array.from(this.imsInfos, ([id, imsInfo]) => imsInfo.saveToDB()));
     }
 
 }

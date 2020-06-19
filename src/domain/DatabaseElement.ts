@@ -19,7 +19,7 @@ export class DatabaseElement {
     public async saveToDB(): Promise<void> {
         if (this.needsSave) {
             this.needsSave = false;
-            await this.save();
+            return this.save();
         }
     }
 
