@@ -4,6 +4,7 @@ import { GitHubCredential } from "./github/GitHubCredential";
 import { IMSInfo } from "./IMSInfo";
 import { GitHubIMSInfo } from "./github/GitHubIMSInfo";
 import { DBClient } from "../domain/DBClient";
+import { IMSInfoProvider } from "./IMSInfoProvider";
 
 export abstract class IMSCredential {
     private readonly _info : IMSInfo;
@@ -16,14 +17,5 @@ export abstract class IMSCredential {
         return this._info;
     }
 
-    public abstract getData(): [BigInt, string];
-
-    public static parse(info: IMSInfo, data : string) : IMSCredential {
-        switch (info.type) {
-            case IMSType.GitHub:
-                return new GitHubCredential(info as GitHubIMSInfo, data);
-            default:
-                throw new Error("no type");
-        }
-    }
+    public abstract getData(): string;
 }

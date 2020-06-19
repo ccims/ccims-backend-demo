@@ -14,13 +14,13 @@ const pgOptions: pg.ClientConfig = {
 const client = DBClient.create(pgOptions);
 
 client.then(async client => {
-    //const thisWillFail = await client.getUser(1n);
-    //console.log(thisWillFail);
+    const thisWillFail = await client.getUser(3n);
+    console.log(thisWillFail);
     const testUser = await client.createUser(Math.random().toString().substring(10), "hello world");
     console.log(testUser);
     testUser.password = "Niklas not so secure password";
     const ims = await client.getAllIMSInfo();
-    //testUser.addIMSCredential(new GitHubCredential(ims[0] as GitHubIMSInfo, "29346857"));
+    testUser.addIMSCredential(new GitHubCredential(ims[0] as GitHubIMSInfo, "29346857"));
     console.log(testUser);
     await client.save();
     new CcimsApi(8080, client).start();

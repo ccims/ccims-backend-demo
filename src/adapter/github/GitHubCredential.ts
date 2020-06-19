@@ -10,8 +10,8 @@ export class GitHubCredential extends IMSCredential {
         this._oAuthToken = token;
     }
 
-    public getData(): [BigInt, string] {
-        return [this.info.id, this._oAuthToken];
+    public getData(): string {
+        return this._oAuthToken;
     }
 
     public get oAuthToken(): string {
