@@ -3,6 +3,7 @@ type Query {
     data(a: Int!, b: String): [String]
     user(username: String): User
     issue(id: String): Issue
+    projects: [Project]
 }
 
 type Issue {

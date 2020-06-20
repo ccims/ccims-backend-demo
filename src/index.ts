@@ -14,8 +14,7 @@ const pgOptions: pg.ClientConfig = {
 const client = DBClient.create(pgOptions);
 
 client.then(async client => {
-    const thisWillFail = await client.getUser(3n);
-    console.log(thisWillFail);
+    const thisWillFail = client.getUser(3n).catch(e => console.error("This wil fail: ", e));
     const testUser = await client.createUser(Math.random().toString().substring(10), "hello world");
     console.log(testUser);
     testUser.password = "Niklas not so secure password";
