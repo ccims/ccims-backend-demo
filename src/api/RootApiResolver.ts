@@ -3,6 +3,8 @@ import { UserResolver } from "./UserResolver";
 import { User } from "../domain/users/User";
 import { DBClient } from "../domain/DBClient";
 import { GithubAdapter } from "../adapter/github/GitHubAdapter";
+import { ProjectResolver } from "./ProjectResolver";
+import { Project } from "../domain/components/Project";
 
 export class RootApiResolver {
 
@@ -20,9 +22,9 @@ export class RootApiResolver {
         return [dataArgs.a ? "a:" + dataArgs.a : "", dataArgs.b ? "b:" + dataArgs.b : ""];
     }
 
-    public user(getUserArgs: GetUserArgs): UserResolver | null {
+    public async user(getUserArgs: GetUserArgs): Promise<UserResolver | null> {
         if (getUserArgs.username) {
-            const user = User.byUserName(getUserArgs.username);
+            const user = await this.dbClient.getUserByUsername(getUserArgs.username);
             if (user) {
                 return new UserResolver(user, this.dbClient);
             }
@@ -32,6 +34,10 @@ export class RootApiResolver {
 
     issues(): Array<IssueResolver | null> {
         //return new IssueResolver(new GithubAdapter("", {}), this.dbClient);
+        return [null];
+    }
+
+    projects(): Array<ProjectResolver | null> {
         return [null];
     }
 }
