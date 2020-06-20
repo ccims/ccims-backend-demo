@@ -25,7 +25,7 @@ export class Project extends DatabaseElement {
 
     public static async create(client: DBClient, name: string, description: string, owner: User) : Promise<Project> {
         const pg = client.client;
-        return pg.query("INSERT INTO components (name, description, components, owner) VALUES ($1, $2, $3, $4) RETURNING id;", 
+        return pg.query("INSERT INTO projects (name, description, components, owner) VALUES ($1, $2, $3, $4) RETURNING id;", 
             [name, description, [], owner.id]).then(async res => {
                 const id : BigInt = res.rows[0]["id"];
                 return await Project.load(client, id);
@@ -41,6 +41,12 @@ export class Project extends DatabaseElement {
                 return new Project(client, id, res.rows[0]["name"], res.rows[0]["description"], res.rows[0]["components"], res.rows[0]["owner"]);
             }
         })
+    }
+
+    protected async save(): Promise<void> {
+        console.log(Array.from(this.componentIDs));
+        await this.client.query("UPDATE projects SET name = $1, description = $2, owner = $3, components = $4 WHERE id = $5", 
+            [this._name, this._description, this.ownerID, Array.from(this.componentIDs), this.id]);
     }
 
     public get name(): string {

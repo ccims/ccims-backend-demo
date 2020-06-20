@@ -2,7 +2,7 @@ import { IssueResolver } from "./IssueResolver";
 import { UserResolver } from "./UserResolver";
 import { User } from "../domain/users/User";
 import { DBClient } from "../domain/DBClient";
-import { GithubAdapter } from "../adapter/github/GithubAdapter";
+import { GithubAdapter } from "../adapter/github/GitHubAdapter";
 
 export class RootApiResolver {
 

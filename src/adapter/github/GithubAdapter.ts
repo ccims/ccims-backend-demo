@@ -5,14 +5,15 @@ import { IMSData } from "../IMSData";
 import { GraphQLClient } from "graphql-request";
 import { User } from "../../domain/users/User";
 import { Component } from "../../domain/components/Component";
-import * as githubTypes from "./GithubGraphqlTypes";
+import {IssueRequest, CommentRequest} from "./GitHubGraphqlTypes";
 import { DBClient } from "../../domain/DBClient";
 import { GitHubCredential } from "./GitHubCredential";
+import { GitHubImsData } from "./GitHubIMSData";
 
 export class GithubAdapter implements IMSAdapter {
 
     private _url: string;
-    private _imsData: GithubImsData;
+    private _imsData: GitHubImsData;
     private _component: Component;
     private _dbClient: DBClient;
 
@@ -21,7 +22,7 @@ export class GithubAdapter implements IMSAdapter {
             throw new Error("The given ims Data wasn't github ims data");
         }
         this._url = url;
-        this._imsData = imsData as GithubImsData;
+        this._imsData = imsData as GitHubImsData;
         this._component = component;
         this._dbClient = dbClient;
     }
@@ -32,7 +33,7 @@ export class GithubAdapter implements IMSAdapter {
                 authorization: (user.getIMSCredential(await this._component.getIMSInfo()) as GitHubCredential).oAuthToken
             }
         });
-        return client.request<githubTypes.IssueRequest>(`query {
+        return client.request<IssueRequest>(`query {
             repository(name:"${this._imsData.repository}", owner:"${this._imsData.owner}") {
                 issues (first: 100) {
                     nodes {
@@ -46,7 +47,7 @@ export class GithubAdapter implements IMSAdapter {
                     }
                 }
             }
-        }`).then((response: githubTypes.IssueRequest): Issue[] => {
+        }`).then((response: IssueRequest): Issue[] => {
             let issues: Issue[] = new Array();
             response.repository.issues.nodes.forEach(async issue => {
                 const user = await this._dbClient.getUserByUsername(issue.author.login);
@@ -62,7 +63,7 @@ export class GithubAdapter implements IMSAdapter {
                 authorization: (user.getIMSCredential(await this._component.getIMSInfo()) as GitHubCredential).oAuthToken
             }
         });
-        return client.request<githubTypes.CommentRequest>(`query {
+        return client.request<CommentRequest>(`query {
             node(id:"${issue.id}") {
                 comments (first: 100) {
                     nodes {
@@ -74,7 +75,7 @@ export class GithubAdapter implements IMSAdapter {
                     }
                 }
             }
-        }`).then((response: githubTypes.CommentRequest): IssueComment[] => {
+        }`).then((response: CommentRequest): IssueComment[] => {
             let comments: IssueComment[] = new Array();
             response.node.comments.nodes.forEach(async comment => {
                 const user = await this._dbClient.getUserByUsername(comment.author.login);
@@ -85,13 +86,8 @@ export class GithubAdapter implements IMSAdapter {
     }
 
     private static isGithubImsData(imsData: IMSData) {
-        const githubData = imsData as GithubImsData;
+        const githubData = imsData as GitHubImsData;
         return typeof githubData.repository === "string" && typeof githubData.owner === "string";
     }
 
-}
-
-interface GithubImsData extends IMSData {
-    repository: string;
-    owner: string;
 }
