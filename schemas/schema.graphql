@@ -7,6 +7,8 @@ type Query {
 type Mutation {
     createIssue(data: IssueInput!): Issue
     updateIssue(issueId: ID!, data: IssueInput!): Issue
+    addRelation(fromId: ID!, toId: ID!): Boolean
+    removeRelation(fromId: ID!, toId: ID!): Boolean
     removeIssue(issueId: ID!): Boolean
 
     createProject(data: ProjectInput!): Project
@@ -16,6 +18,10 @@ type Mutation {
     removeProject(projectId: ID!): Boolean
 
     createComponent(data: ComponentInput): Component
+    addProvidedInterface(componentId: ID!, interfaceId: ID!): Component
+    removeProvidedInterface(componentId: ID!, interfaceId: ID!): Component
+    addUsedInterface(componentId: ID!, interfaceId: ID!): Component
+    removeUsedInterface(componentId: ID!, interfaceId: ID!): Component
     removeComponent(componentId: ID!):Boolean
 
     createUser(data: UserInput!): User
