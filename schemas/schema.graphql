@@ -1,5 +1,4 @@
 type Query {
-    user(username: String!): User
     issue(id: ID!): Issue
     projects: [Project]
 }
@@ -7,8 +6,8 @@ type Query {
 type Mutation {
     createIssue(data: IssueInput!): Issue
     updateIssue(issueId: ID!, data: IssueInput!): Issue
-    addRelation(fromId: ID!, toId: ID!): Boolean
-    removeRelation(fromId: ID!, toId: ID!): Boolean
+    addIssueRelation(fromId: ID!, toId: ID!): Boolean
+    removeIssueRelation(fromId: ID!, toId: ID!): Boolean
     removeIssue(issueId: ID!): Boolean
 
     createProject(data: ProjectInput!): Project
@@ -24,7 +23,8 @@ type Mutation {
     removeUsedInterface(componentId: ID!, interfaceId: ID!): Component
     removeComponent(componentId: ID!):Boolean
 
-    createUser(data: UserInput!): User
+    addInterface(data: InterfaceInput!): Inteface
+
 }
 
 interface Element {
@@ -95,6 +95,11 @@ type Component implements Element {
 type Interface implements Element {
     hostComponent: Component
     usingComponents: [Component]
+    name: string
+}
+
+type InterfaceInput {
+    name: string!
 }
 
 type ComponentInput {
