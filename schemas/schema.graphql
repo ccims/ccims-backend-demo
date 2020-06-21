@@ -1,37 +1,95 @@
 type Query {
-    hello: String
-    data(a: Int!, b: String): [String]
-    user(username: String): User
-    issue(id: String): Issue
+    user(username: String!): User
+    issue(id: ID!): Issue
     projects: [Project]
 }
 
-type Issue {
+type Mutation {
+    createIssue(data: IssueInput!): Issue
+    updateIssue(issueId: ID!, data: IssueInput!): Issue
+    removeIssue(issueId: ID!): Boolean
+
+    createProject(data: ProjectInput!): Project
+    modifyProject(projectId: ID!, data: ProjectInput): Project
+    addComponentToProject(projectId: ID!, componentId: ID!): Project
+    removeComponentFromProject(projectId: ID!, componentId: ID!): Project
+    removeProject(projectId: ID!): Boolean
+
+    createComponent(data: ComponentInput): Component
+    removeComponent(componentId: ID!):Boolean
+
+    createUser(data: UserInput!): User
+}
+
+interface Element {
+    id: ID!
+}
+
+type Issue implements Element {
     title: String
     body: String
     bodyRendered: String
     comments: [Comment]
+    opened: Boolean
 }
 
-type Comment {
+type IssueInput {
+    title: String
+    body: String
+    opened: Boolean
+}
+
+type Comment implements Element {
     author: User
     text: String
     textRendered: String
 }
 
-type User {
-    name: String
+type User implements Element {
+    userName: String
     components: [Component]
     projects: [Project]
+    ims: [IMS]
 }
 
-type Component {
+type UserInput {
+    userName: string!
+    password: string
+}
+
+type Component implements Element {
     name: String
+    description: String
     issues: [Issue]
     projects: [Project]
+    ims: IMS
 }
 
-type Project {
+type ComponentInput {
+    name: String!
+    description: String
+    imsId: ID!
+    ownerUserName: String!
+}
+
+type IMS {
+    id: ID!
+    type: ImsType
+}
+
+enum ImsType {
+    GitHub
+}
+
+type Project implements Element {
     name: String
     components: [Component]
+    ownerUsername: String
+    description: String
+}
+
+type ProjectInput {
+    name: String!
+    description: String
+    ownerUsername: String!
 }
