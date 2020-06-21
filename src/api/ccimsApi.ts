@@ -5,7 +5,7 @@ import graphqlHTTP from "express-graphql";
 //import * as graphqlType from "type-graphql";
 import * as graphql from "graphql";
 import * as fs from "fs";
-import { RootApiResolver } from "./RootApiResolver";
+import { RootApiResolver } from "./graphqlResolvers/RootApiResolver";
 import path from "path";
 import { DBClient } from "../domain/DBClient";
 import { tokenResponseRouter } from "./tokenResponseRouter";
@@ -42,7 +42,7 @@ export class CcimsApi {
             graphiql: true
         }));
         const requestRouter = await tokenRequestRouter(this.dbClient);
-        this.expressServer.use("/tokenResponse", tokenResponseRouter);
+        this.expressServer.use("/tokenResponse", tokenResponseRouter(this.dbClient));
         this.expressServer.use("/tokenRequest", requestRouter);
         this.expressServer.listen({ port: this.port }, console.error);
         console.log("Started api");

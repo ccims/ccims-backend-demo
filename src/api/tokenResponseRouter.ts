@@ -5,33 +5,54 @@ import { GitHubIMSInfo } from "../adapter/github/GitHubIMSInfo";
 import { IMSType } from "../adapter/IMSType";
 import { GitHubCredential } from "../adapter/github/GitHubCredential";
 import { User } from "../domain/users/User";
+import { Cipher } from "crypto";
 
 
 //TODO: Save and check user data and "state"  security
 export function tokenResponseRouter(dbClient: DBClient) {
     const resRouter = Router();
 
-    resRouter.use("/github?code=:code&state=:state", (request, response, next) => {
-        console.log("Token response from github: ", request.param("code"));
+    resRouter.use("/github", (request, response, next) => {
+        console.log("Token response from github: ", request.query["code"]);
         next();
-        if (request.param("code", undefined) !== undefined) {
-            const code: string = request.param("code");
+        if (request.query["code"] !== undefined) {
+            const code: string = request.query["code"] as string;
             (async () => {
                 const githubInfo = (await dbClient.getAllIMSInfo()).filter(info => info.type == IMSType.GitHub)[0] as GitHubIMSInfo;
                 if (githubInfo) {
-                    console.log("Started request")
+                    console.log("Started request");
+                    /*const fetchTokenRequest = new URLSearchParams();
+                    fetchTokenRequest.append("client_id", githubInfo.clientId);
+                    fetchTokenRequest.append("client_secret", githubInfo.clientSecret);
+                    fetchTokenRequest.append("code", code);
+                    fetchTokenRequest.append("redirect_uri", githubInfo.redirectUri);
+                    fetchTokenRequest.append("state", request.param("state"));*/
+                    const fetchTokenRequest = {
+                        client_id: githubInfo.clientId,
+                        client_secret: githubInfo.clientSecret,
+                        code: code,
+                        redirect_uri: githubInfo.redirectUri,
+                        state: request.param("state")
+                    };
                     fetch("https://github.com/login/oauth/access_token", {
                         method: "POST",
-                        body: `client_id=${githubInfo.clientId}&client_secret=${githubInfo.clientSecret}&code=${code}&redirect_uri=${githubInfo.redirectUri}&state=${request.param("state")}`
+                        body: JSON.stringify(fetchTokenRequest),
+                        headers: { 'Content-Type': 'application/json' }
                     }).then(async queryResponse => {
-                        const responseData = (await queryResponse.json()) as GithubAccessTokenResponse;
-                        const credentials = new GitHubCredential(githubInfo, responseData.access_token);
-                        const user = await dbClient.getUserByUsername(request.param("state").split("-")[1]);
-                        if (user) {
-                            user.addIMSCredential(credentials);
+                        if (queryResponse.status == 200) {
+                            const returnedParams = await queryResponse.text();
+                            const accessTokenStart = returnedParams.indexOf("access_token=") + 13;
+                            const accessToken = returnedParams.substr(accessTokenStart, returnedParams.indexOf("&", accessTokenStart) - accessTokenStart);
+                            const credentials = new GitHubCredential(githubInfo, accessToken);
+                            const user = await dbClient.getUserByUsername((request.query["state"] as string).split("-")[1]);
+                            if (user) {
+                                user.addIMSCredential(credentials);
+                                user.saveToDB();
+                            }
+                            console.log(returnedParams);
+                        } else {
+                            console.error("Github returned an error: ", await queryResponse.text());
                         }
-                        console.log(responseData);
-
                     });
                 }
             })();

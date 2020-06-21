@@ -1,6 +1,6 @@
-import { Project } from "../domain/components/Project";
+import { Project } from "../../domain/components/Project";
 import { ComponentResolver } from "./ComponentResolver";
-import { DBClient } from "../domain/DBClient";
+import { DBClient } from "../../domain/DBClient";
 
 export class ProjectResolver {
 

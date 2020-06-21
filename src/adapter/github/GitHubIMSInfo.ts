@@ -37,7 +37,7 @@ export class GitHubIMSInfo extends IMSInfo {
     }
 
     public get clientSecret(): string {
-        return this.clientSecret;
+        return this._clientSecret;
     }
 
     public get redirectUri(): string {

@@ -1,37 +1,127 @@
 type Query {
-    hello: String
-    data(a: Int!, b: String): [String]
-    user(username: String): User
-    issue(id: String): Issue
+    user(username: String!): User
+    issue(id: ID!): Issue
     projects: [Project]
 }
 
-type Issue {
+type Mutation {
+    createIssue(data: IssueInput!): Issue
+    updateIssue(issueId: ID!, data: IssueInput!): Issue
+    addRelation(fromId: ID!, toId: ID!): Boolean
+    removeRelation(fromId: ID!, toId: ID!): Boolean
+    removeIssue(issueId: ID!): Boolean
+
+    createProject(data: ProjectInput!): Project
+    modifyProject(projectId: ID!, data: ProjectInput): Project
+    addComponentToProject(projectId: ID!, componentId: ID!): Project
+    removeComponentFromProject(projectId: ID!, componentId: ID!): Project
+    removeProject(projectId: ID!): Boolean
+
+    createComponent(data: ComponentInput): Component
+    addProvidedInterface(componentId: ID!, interfaceId: ID!): Component
+    removeProvidedInterface(componentId: ID!, interfaceId: ID!): Component
+    addUsedInterface(componentId: ID!, interfaceId: ID!): Component
+    removeUsedInterface(componentId: ID!, interfaceId: ID!): Component
+    removeComponent(componentId: ID!):Boolean
+
+    createUser(data: UserInput!): User
+}
+
+interface Element {
+    id: ID!
+}
+
+type Issue implements Element {
     title: String
     body: String
     bodyRendered: String
     comments: [Comment]
+    opened: Boolean
+    issueType: IssueType
+    relatedIssues: [IssueRelation]
 }
 
-type Comment {
+type IssueRelation {
+    issue: Issue
+    relationType: RelationType
+}
+
+enum RelationType {
+    RELATED_TO,
+    DUPLICATES,
+    DEPENDS,
+}
+
+enum IssueType {
+    UNCLASSIFIED,
+    BUG,
+    FEATURE_REQUEST,
+}
+
+type IssueInput {
+    title: String
+    body: String
+    opened: Boolean
+}
+
+type Comment implements Element {
     author: User
     text: String
     textRendered: String
 }
 
-type User {
-    name: String
+type User implements Element {
+    userName: String
     components: [Component]
     projects: [Project]
+    ims: [IMS]
 }
 
-type Component {
+type UserInput {
+    userName: String!
+    password: String
+}
+
+type Component implements Element {
     name: String
+    description: String
     issues: [Issue]
     projects: [Project]
+    ims: IMS
+    interfaces: [Interface]
+    usedInterfaces: [Inteface]
 }
 
-type Project {
+type Interface implements Element {
+    hostComponent: Component
+    usingComponents: [Component]
+}
+
+type ComponentInput {
+    name: String!
+    description: String
+    imsId: ID!
+    ownerUserName: String!
+}
+
+type IMS {
+    id: ID!
+    type: ImsType
+}
+
+enum ImsType {
+    GitHub
+}
+
+type Project implements Element {
     name: String
     components: [Component]
+    ownerUsername: String
+    description: String
+}
+
+type ProjectInput {
+    name: String!
+    description: String
+    ownerUsername: String!
 }

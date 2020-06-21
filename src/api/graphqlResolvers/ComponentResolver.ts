@@ -1,7 +1,7 @@
-import { Component } from "../domain/components/Component";
+import { Component } from "../../domain/components/Component";
 import { IssueResolver } from "./IssueResolver";
 import { ProjectResolver } from "./ProjectResolver";
-import { DBClient } from "../domain/DBClient";
+import { DBClient } from "../../domain/DBClient";
 
 export class ComponentResolver {
 
