@@ -103,7 +103,7 @@ export class DBClient {
     }
 
     public async createComponent(name: string, description: string, project: Project, ims: IMSInfo, owner: User, imsData: IMSData): Promise<Component> {
-        const newComponent = await Component.create(this, name, description, project, ims, owner, imsData);
+        const newComponent = await Component.create(this, name, description,  new Set([project]), ims, owner, imsData);
         this.components.set(newComponent.id, newComponent);
         return newComponent;
     }

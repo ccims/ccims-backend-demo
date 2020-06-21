@@ -76,4 +76,8 @@ export class Project extends DatabaseElement {
         this.componentIDs.delete(component.id);
         this.invalidate();
     }
+
+    public async getComponents(): Promise<Set<Component>> {
+        return new Set(await Promise.all(Array.from(this.componentIDs).map(id => this.imsClient.getComponent(id))));
+    }
 }
