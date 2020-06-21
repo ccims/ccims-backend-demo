@@ -21,7 +21,7 @@ CREATE TABLE components (
     name VARCHAR(255),
     description TEXT,
     owner INTEGER NOT NULL,
-    project INTEGER,
+    projects INTEGER[],
     ims INTEGER,
     ims_data JSON
 );

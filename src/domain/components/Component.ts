@@ -5,13 +5,14 @@ import { DatabaseElement } from "../DatabaseElement";
 import { IMSData } from "../../adapter/IMSData";
 import { IMSInfo } from "../../adapter/IMSInfo";
 import { User } from "../users/User";
+import { compileFunction } from "vm";
 
 export class Component extends DatabaseElement {
     private _name : string;
 
     private _description: string;
 
-    private readonly projectID: BigInt;
+    private projectIDs: Set<BigInt>;
 
     private imsID: BigInt;
 
@@ -19,23 +20,23 @@ export class Component extends DatabaseElement {
 
     private _imsData: IMSData;
 
-    public constructor(client : DBClient, id: BigInt, name : string, description: string, projectID : BigInt, imsID: BigInt, ownerID: BigInt, imsData: IMSData) {
+    public constructor(client : DBClient, id: BigInt, name : string, description: string, projectIDs : Set<BigInt>, imsID: BigInt, ownerID: BigInt, imsData: IMSData) {
         super(client, id);
         this._name = name;
         this._description = description;
-        this.projectID = projectID;
+        this.projectIDs = projectIDs;
         this.imsID = imsID;
         this.ownerID = ownerID;
         this._imsData = imsData;
     }
 
-    public static async create(client: DBClient, name: string, description: string, project: Project, ims: IMSInfo, owner: User, imsData: IMSData) : Promise<Component> {
+    public static async create(client: DBClient, name: string, description: string, projects: Set<Project>, ims: IMSInfo, owner: User, imsData: IMSData) : Promise<Component> {
         const pg = client.client;
-        return pg.query("INSERT INTO components (name, description, owner, project, ims, ims_data) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;", 
-            [name, description, owner.id, project.id, ims.id, imsData]).then(async res => {
+        return pg.query("INSERT INTO components (name, description, owner, projects, ims, ims_data) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;", 
+            [name, description, owner.id, Array.from(projects).map(project => project.id), ims.id, imsData]).then(async res => {
                 const id : BigInt = res.rows[0]["id"];
                 const newComponent = await Component.load(client, id);
-                project.addComponent(newComponent);
+                projects.forEach(project => project.addComponent(newComponent));
                 owner.addComponent(newComponent);
                 return newComponent;
             });
@@ -43,19 +44,19 @@ export class Component extends DatabaseElement {
 
     public static async load(client: DBClient, id: BigInt): Promise<Component> {
         const pg = client.client
-        return pg.query("SELECT id, name, description, owner, project, ims, ims_data FROM components WHERE id=$1::bigint;", [id]).then(res => {
+        return pg.query("SELECT id, name, description, owner, projects, ims, ims_data FROM components WHERE id=$1::bigint;", [id]).then(res => {
             if (res.rowCount !== 1) {
                 throw new Error("illegal number of components found");
             } else {
                 return new Component(client, id, res.rows[0]["name"], res.rows[0]["description"], 
-                    res.rows[0]["project"], res.rows[0]["ims"], res.rows[0]["owner"], res.rows[0]["ims_data"]);
+                    res.rows[0]["projects"], res.rows[0]["ims"], res.rows[0]["owner"], res.rows[0]["ims_data"]);
             }
         })
     }
 
     protected async save(): Promise<void> {
-        this.client.query("UPDATE components SET name = $1, description = $2, owner = $3, ims = $4, ims_data = $5 WHERE id = $6", 
-            [this._name, this._description, this.ownerID, this.imsID, this.imsData, this.id]);
+        this.client.query("UPDATE components SET name = $1, description = $2, owner = $3, ims = $4, ims_data = $5, projects = %6 WHERE id = $7", 
+            [this._name, this._description, this.ownerID, this.imsID, this.imsData, Array.from(this.projectIDs), this.id]);
     }
 
     public get name() : string {
@@ -98,7 +99,17 @@ export class Component extends DatabaseElement {
         this.invalidate();
     }
 
-    public async getProject(): Promise<Project> {
-        return this.imsClient.getProject(this.projectID);
+    public addProject(project: Project): void {
+        this.projectIDs.add(project.id);
+        this.invalidate();
+    }
+
+    public removeProject(project: Project): void {
+        this.projectIDs.delete(project.id);
+        this.invalidate();
+    }
+
+    public async getProjects(): Promise<Set<Project>> {
+        return new Set(await Promise.all(Array.from(this.projectIDs).map(id => this.imsClient.getProject(id))));
     }
 }

@@ -102,8 +102,8 @@ export class DBClient {
         return Promise.all(res.rows.map(row => row["id"]).map(id => this.getProject(id)));
     }
 
-    public async createComponent(name: string, description: string, project: Project, ims: IMSInfo, owner: User, imsData: IMSData): Promise<Component> {
-        const newComponent = await Component.create(this, name, description, project, ims, owner, imsData);
+    public async createComponent(name: string, description: string, projects: Set<Project>, ims: IMSInfo, owner: User, imsData: IMSData): Promise<Component> {
+        const newComponent = await Component.create(this, name, description, projects, ims, owner, imsData);
         this.components.set(newComponent.id, newComponent);
         return newComponent;
     }
