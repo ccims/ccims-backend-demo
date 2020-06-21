@@ -45,8 +45,8 @@ export class User extends DatabaseElement {
     }
 
     protected async save(): Promise<void> {
-        this.client.query("UPDATE users SET username = $1, password = $2, components = $3, ims_login = $4 WHERE id = $5",
-            [this._userName, this._password, this.componentIDs, Array.from(this.imsCredentials, ([key, value]) => this.createCredentialDBEntry(key, value)), this.id]);
+        this.client.query("UPDATE users SET username = $1, password = $2, components = $3, ims_login = $4 WHERE id = $5", 
+            [this._userName, this._password, Array.from(this.componentIDs), Array.from(this.imsCredentials, ([key, value]) => this.createCredentialDBEntry(key, value)), this.id]);
     }
 
     private createCredentialDBEntry(key: IMSInfo, value: IMSCredential): IMSCredentialDBEntry {

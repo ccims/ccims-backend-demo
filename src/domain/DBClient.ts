@@ -97,6 +97,11 @@ export class DBClient {
         }
     }
 
+    public async getAllProjects(): Promise<Project[]> {
+        const res = await this.client.query("SELECT id FROM projects");
+        return Promise.all(res.rows.map(row => row["id"]).map(id => this.getProject(id)));
+    }
+
     public async createComponent(name: string, description: string, project: Project, ims: IMSInfo, owner: User, imsData: IMSData): Promise<Component> {
         const newComponent = await Component.create(this, name, description, project, ims, owner, imsData);
         this.components.set(newComponent.id, newComponent);

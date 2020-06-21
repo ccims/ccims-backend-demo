@@ -34,7 +34,10 @@ export class Component extends DatabaseElement {
         return pg.query("INSERT INTO components (name, description, owner, project, ims, ims_data) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;", 
             [name, description, owner.id, project.id, ims.id, imsData]).then(async res => {
                 const id : BigInt = res.rows[0]["id"];
-                return await Component.load(client, id);
+                const newComponent = await Component.load(client, id);
+                project.addComponent(newComponent);
+                owner.addComponent(newComponent);
+                return newComponent;
             });
     }
 
@@ -52,7 +55,7 @@ export class Component extends DatabaseElement {
 
     protected async save(): Promise<void> {
         this.client.query("UPDATE components SET name = $1, description = $2, owner = $3, ims = $4, ims_data = $5 WHERE id = $6", 
-            [this._name, this._description, this.ownerID, this.imsID, JSON.stringify(this.imsData), this.id]);
+            [this._name, this._description, this.ownerID, this.imsID, this.imsData, this.id]);
     }
 
     public get name() : string {
