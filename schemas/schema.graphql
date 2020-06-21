@@ -40,6 +40,7 @@ type Issue implements Element {
     opened: Boolean
     issueType: IssueType
     relatedIssues: [IssueRelation]
+    creationDate: String
 }
 
 type IssueRelation {

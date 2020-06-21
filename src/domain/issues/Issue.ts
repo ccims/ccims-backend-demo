@@ -80,7 +80,7 @@ export class Issue {
         this._id = id;
     }
 
-    public static async create(component: Component, creator: User, title: string, body: string, dbClient: DBClient): Issue {
+    public static async create(component: Component, creator: User, title: string, body: string, dbClient: DBClient): Promise<Issue> {
         return new GitHubAdapter(component, dbClient).createIssue(creator, title, body);
     }
 }

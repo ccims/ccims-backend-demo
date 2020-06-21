@@ -36,11 +36,11 @@ export class GitHubAdapter implements IMSAdapter {
             this._imsData = {
                 repository: this._imsData.repository,
                 owner: this._imsData.owner,
-                repositoryId: (await (await new GraphQLClient(imsInfo.endpoint, {
+                repositoryId: (await new GraphQLClient(imsInfo.endpoint, {
                     headers: {
                         authorization: (user.getIMSCredential(await this._component.getIMSInfo()) as GitHubCredential).oAuthToken
                     }
-                })).request<RepositoryIdRequest>(`query {
+                }).request<RepositoryIdRequest>(`query {
                     repository(name: "${this._imsData.repository}", owner: "${this._imsData.owner}"){
                         id
                         }

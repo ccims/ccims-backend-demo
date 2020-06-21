@@ -12,7 +12,7 @@ export class User extends DatabaseElement {
 
     private componentIDs: Set<BigInt>;
 
-    private imsCredentials: Map<IMSInfo, IMSCredential>;
+    private imsCredentials: Map<BigInt, IMSCredential>;
 
     protected constructor(client: DBClient, id: BigInt, userName: string, password: string, components: BigInt[], imsCredentials: IMSCredential[]) {
         super(client, id);
@@ -20,7 +20,7 @@ export class User extends DatabaseElement {
         this._password = password;
         this.componentIDs = new Set(components);
         this.imsCredentials = new Map();
-        imsCredentials.forEach(credential => this.imsCredentials.set(credential.info, credential))
+        imsCredentials.forEach(credential => this.imsCredentials.set(credential.info.id, credential))
     }
 
     public static async load(client: DBClient, id: BigInt): Promise<User> {
@@ -45,13 +45,13 @@ export class User extends DatabaseElement {
     }
 
     protected async save(): Promise<void> {
-        this.client.query("UPDATE users SET username = $1, password = $2, components = $3, ims_login = $4 WHERE id = $5", 
+        this.client.query("UPDATE users SET username = $1, password = $2, components = $3, ims_login = $4 WHERE id = $5",
             [this._userName, this._password, Array.from(this.componentIDs), Array.from(this.imsCredentials, ([key, value]) => this.createCredentialDBEntry(key, value)), this.id]);
     }
 
-    private createCredentialDBEntry(key: IMSInfo, value: IMSCredential): IMSCredentialDBEntry {
+    private createCredentialDBEntry(key: BigInt, value: IMSCredential): IMSCredentialDBEntry {
         const entry: IMSCredentialDBEntry = {
-            id: key.id,
+            id: key,
             secret: value.getData()
         }
         return entry;
@@ -68,17 +68,17 @@ export class User extends DatabaseElement {
     }
 
     public addIMSCredential(credential: IMSCredential) {
-        this.imsCredentials.set(credential.info, credential);
+        this.imsCredentials.set(credential.info.id, credential);
         this.invalidate();
     }
 
     public removeIMSCredential(credentialInfo: IMSInfo): void {
-        this.imsCredentials.delete(credentialInfo);
+        this.imsCredentials.delete(credentialInfo.id);
         this.invalidate();
     }
 
     public getIMSCredential(info: IMSInfo): IMSCredential | undefined {
-        return this.imsCredentials.get(info);
+        return this.imsCredentials.get(info.id);
     }
 
     public get userName(): string {

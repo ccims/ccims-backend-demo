@@ -43,7 +43,7 @@ export class RootApiResolver {
 
     async createIssue(args: CreateIssueArgs): Promise<IssueResolver> {
         const component = await Component.load(this.dbClient, BigInt(args.data.componentId));
-        return new IssueResolver(Issue.create(component, this._user, args.data.title || "untiteled ccims issue", args.data.body || "", this.dbClient), this.dbClient);
+        return new IssueResolver(await Issue.create(component, this._user, args.data.title || "untiteled ccims issue", args.data.body || "", this.dbClient), this.dbClient);
     }
 
     updateIssue(args: UpdateIssueArgs): IssueResolver | null {
