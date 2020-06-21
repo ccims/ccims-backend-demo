@@ -9,6 +9,7 @@ import { Component } from "./domain/components/Component";
 import { IMSInfoProvider } from "./adapter/IMSInfoProvider";
 import { IMSData } from "./adapter/IMSData";
 import { GitHubImsData } from "./adapter/github/GitHubIMSData";
+import request from "graphql-request";
 
 const pgOptions: pg.ClientConfig = {
     user: config.postgres.username,

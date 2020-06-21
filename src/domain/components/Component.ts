@@ -1,5 +1,5 @@
 import { IMSAdapter } from "../../adapter/IMSAdapter";
-import {Project} from "./Project";
+import { Project } from "./Project";
 import { DBClient } from "../DBClient";
 import { DatabaseElement } from "../DatabaseElement";
 import { IMSData } from "../../adapter/IMSData";
@@ -8,7 +8,7 @@ import { User } from "../users/User";
 import { compileFunction } from "vm";
 
 export class Component extends DatabaseElement {
-    private _name : string;
+    private _name: string;
 
     private _description: string;
 
@@ -20,7 +20,7 @@ export class Component extends DatabaseElement {
 
     private _imsData: IMSData;
 
-    public constructor(client : DBClient, id: BigInt, name : string, description: string, projectIDs : Set<BigInt>, imsID: BigInt, ownerID: BigInt, imsData: IMSData) {
+    public constructor(client: DBClient, id: BigInt, name: string, description: string, projectIDs: Set<BigInt>, imsID: BigInt, ownerID: BigInt, imsData: IMSData) {
         super(client, id);
         this._name = name;
         this._description = description;
@@ -30,11 +30,11 @@ export class Component extends DatabaseElement {
         this._imsData = imsData;
     }
 
-    public static async create(client: DBClient, name: string, description: string, projects: Set<Project>, ims: IMSInfo, owner: User, imsData: IMSData) : Promise<Component> {
+    public static async create(client: DBClient, name: string, description: string, projects: Set<Project>, ims: IMSInfo, owner: User, imsData: IMSData): Promise<Component> {
         const pg = client.client;
-        return pg.query("INSERT INTO components (name, description, owner, projects, ims, ims_data) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;", 
+        return pg.query("INSERT INTO components (name, description, owner, projects, ims, ims_data) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;",
             [name, description, owner.id, Array.from(projects).map(project => project.id), ims.id, imsData]).then(async res => {
-                const id : BigInt = res.rows[0]["id"];
+                const id: BigInt = res.rows[0]["id"];
                 const newComponent = await Component.load(client, id);
                 projects.forEach(project => project.addComponent(newComponent));
                 owner.addComponent(newComponent);
@@ -48,18 +48,18 @@ export class Component extends DatabaseElement {
             if (res.rowCount !== 1) {
                 throw new Error("illegal number of components found");
             } else {
-                return new Component(client, id, res.rows[0]["name"], res.rows[0]["description"], 
+                return new Component(client, id, res.rows[0]["name"], res.rows[0]["description"],
                     res.rows[0]["projects"], res.rows[0]["ims"], res.rows[0]["owner"], res.rows[0]["ims_data"]);
             }
         })
     }
 
     protected async save(): Promise<void> {
-        this.client.query("UPDATE components SET name = $1, description = $2, owner = $3, ims = $4, ims_data = $5, projects = %6 WHERE id = $7", 
+        this.client.query("UPDATE components SET name = $1, description = $2, owner = $3, ims = $4, ims_data = $5, projects = $6 WHERE id = $7",
             [this._name, this._description, this.ownerID, this.imsID, this.imsData, Array.from(this.projectIDs), this.id]);
     }
 
-    public get name() : string {
+    public get name(): string {
         return this._name;
     }
 

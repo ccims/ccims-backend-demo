@@ -33,18 +33,20 @@ export class GitHubAdapter implements IMSAdapter {
             if (imsInfo.type != IMSType.GitHub) {
                 throw new Error("The given ims type isn't a github ims type was invalid.");
             }
+            const authHead = "token " + (user.getIMSCredential(await this._component.getIMSInfo()) as GitHubCredential).oAuthToken;
+            const repositoryData = await new GraphQLClient(imsInfo.endpoint, {
+                headers: {
+                    authorization: authHead
+                }
+            }).request<RepositoryIdRequest>(`query {
+                repository(name: "${this._imsData.repository}", owner: "${this._imsData.owner}"){
+                    id
+                    }
+                }`);
             this._imsData = {
                 repository: this._imsData.repository,
                 owner: this._imsData.owner,
-                repositoryId: (await new GraphQLClient(imsInfo.endpoint, {
-                    headers: {
-                        authorization: (user.getIMSCredential(await this._component.getIMSInfo()) as GitHubCredential).oAuthToken
-                    }
-                }).request<RepositoryIdRequest>(`query {
-                    repository(name: "${this._imsData.repository}", owner: "${this._imsData.owner}"){
-                        id
-                        }
-                    }`)).repository.id,
+                repositoryId: repositoryData.repository.id,
             };
             this._component.imsData = this._imsData;
             this._component.saveToDB();
@@ -56,10 +58,10 @@ export class GitHubAdapter implements IMSAdapter {
         if (imsInfo.type != IMSType.GitHub) {
             throw new Error("The given ims type isn't a github ims type was invalid.");
         }
-        this.checkImsData(user);
+        await this.checkImsData(user);
         return new GraphQLClient(imsInfo.endpoint, {
             headers: {
-                authorization: (user.getIMSCredential(imsInfo) as GitHubCredential).oAuthToken
+                authorization: "token " + (user.getIMSCredential(imsInfo) as GitHubCredential).oAuthToken
             }
         });
     }
@@ -105,6 +107,8 @@ export class GitHubAdapter implements IMSAdapter {
             return new Issue(response.createIssue.issue.id, this._component, user, new Date(response.createIssue.issue.createdAt), title, body);
         });
     }
+
+
 
     async getComments(issue: Issue, user: User): Promise<IssueComment[]> {
         return (await this.getRequest(user)).request<CommentRequest>(`query {
