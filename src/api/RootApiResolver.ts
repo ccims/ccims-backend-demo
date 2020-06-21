@@ -2,7 +2,7 @@ import { IssueResolver } from "./IssueResolver";
 import { UserResolver } from "./UserResolver";
 import { User } from "../domain/users/User";
 import { DBClient } from "../domain/DBClient";
-import { GithubAdapter } from "../adapter/github/GitHubAdapter";
+import { GitHubAdapter } from "../adapter/github/GitHubAdapter";
 import { ProjectResolver } from "./ProjectResolver";
 import { Project } from "../domain/components/Project";
 

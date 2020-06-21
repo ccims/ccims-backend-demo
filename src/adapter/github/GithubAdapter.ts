@@ -10,7 +10,7 @@ import { DBClient } from "../../domain/DBClient";
 import { GitHubCredential } from "./GitHubCredential";
 import { GitHubImsData } from "./GitHubIMSData";
 
-export class GithubAdapter implements IMSAdapter {
+export class GitHubAdapter implements IMSAdapter {
 
     private _url: string;
     private _imsData: GitHubImsData;
@@ -18,7 +18,7 @@ export class GithubAdapter implements IMSAdapter {
     private _dbClient: DBClient;
 
     constructor(url: string, imsData: IMSData, component: Component, dbClient: DBClient) {
-        if (!GithubAdapter.isGithubImsData(imsData)) {
+        if (!GitHubAdapter.isGithubImsData(imsData)) {
             throw new Error("The given ims Data wasn't github ims data");
         }
         this._url = url;
