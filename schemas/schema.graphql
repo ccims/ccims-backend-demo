@@ -23,7 +23,7 @@ type Mutation {
     removeUsedInterface(componentId: ID!, interfaceId: ID!): Component
     removeComponent(componentId: ID!):Boolean
 
-    addInterface(data: InterfaceInput!): Inteface
+    addInterface(data: InterfaceInput!): Interface
 
 }
 
@@ -32,6 +32,7 @@ interface Element {
 }
 
 type Issue implements Element {
+    id: ID!
     title: String
     body: String
     bodyRendered: String
@@ -58,51 +59,55 @@ enum IssueType {
     FEATURE_REQUEST,
 }
 
-type IssueInput {
+input IssueInput {
     title: String
     body: String
     opened: Boolean
 }
 
 type Comment implements Element {
+    id: ID!
     author: User
     text: String
     textRendered: String
 }
 
 type User implements Element {
+    id: ID!
     userName: String
     components: [Component]
     projects: [Project]
     ims: [IMS]
 }
 
-type UserInput {
+input UserInput {
     userName: String!
     password: String
 }
 
 type Component implements Element {
+    id: ID!
     name: String
     description: String
     issues: [Issue]
     projects: [Project]
     ims: IMS
     interfaces: [Interface]
-    usedInterfaces: [Inteface]
+    usedInterfaces: [Interface]
 }
 
 type Interface implements Element {
+    id: ID!
     hostComponent: Component
     usingComponents: [Component]
-    name: string
+    name: String
 }
 
-type InterfaceInput {
-    name: string!
+input InterfaceInput {
+    name: String!
 }
 
-type ComponentInput {
+input ComponentInput {
     name: String!
     description: String
     imsId: ID!
@@ -119,13 +124,14 @@ enum ImsType {
 }
 
 type Project implements Element {
+    id: ID!
     name: String
     components: [Component]
     ownerUsername: String
     description: String
 }
 
-type ProjectInput {
+input ProjectInput {
     name: String!
     description: String
     ownerUsername: String!

@@ -1,12 +1,12 @@
-import {Component} from "./Component";
-import {Client} from "pg";
+import { Component } from "./Component";
+import { Client } from "pg";
 import { DatabaseElement } from "../DatabaseElement";
 import { DBClient } from "../DBClient";
 import { ExecFileSyncOptionsWithStringEncoding } from "child_process";
 import { User } from "../users/User";
 
 export class Project extends DatabaseElement {
-    
+
     private _name: string;
 
     private _description: string;
@@ -15,7 +15,7 @@ export class Project extends DatabaseElement {
 
     private ownerID: BigInt;
 
-    private constructor(client : DBClient, id : BigInt, name : string, description: string, components : BigInt[], ownerID: BigInt) {
+    private constructor(client: DBClient, id: BigInt, name: string, description: string, components: BigInt[], ownerID: BigInt) {
         super(client, id);
         this._name = name;
         this._description = description;
@@ -23,11 +23,11 @@ export class Project extends DatabaseElement {
         this.ownerID = ownerID;
     }
 
-    public static async create(client: DBClient, name: string, description: string, owner: User) : Promise<Project> {
+    public static async create(client: DBClient, name: string, description: string, owner: User): Promise<Project> {
         const pg = client.client;
-        return pg.query("INSERT INTO projects (name, description, components, owner) VALUES ($1, $2, $3, $4) RETURNING id;", 
+        return pg.query("INSERT INTO projects (name, description, components, owner) VALUES ($1, $2, $3, $4) RETURNING id;",
             [name, description, [], owner.id]).then(async res => {
-                const id : BigInt = res.rows[0]["id"];
+                const id: BigInt = res.rows[0]["id"];
                 return await Project.load(client, id);
             });
     }
@@ -45,14 +45,14 @@ export class Project extends DatabaseElement {
 
     protected async save(): Promise<void> {
         console.log(Array.from(this.componentIDs));
-        await this.client.query("UPDATE projects SET name = $1, description = $2, owner = $3, components = $4 WHERE id = $5", 
+        await this.client.query("UPDATE projects SET name = $1, description = $2, owner = $3, components = $4 WHERE id = $5",
             [this._name, this._description, this.ownerID, Array.from(this.componentIDs), this.id]);
     }
 
     public get name(): string {
         return this._name;
-    } 
-    
+    }
+
     public set name(name: string) {
         this._name = name;
         this.invalidate();
@@ -67,7 +67,15 @@ export class Project extends DatabaseElement {
         this.invalidate();
     }
 
-    public addComponent(component : Component): void {
+    public get ownerUserId(): BigInt {
+        return this.ownerID;
+    }
+
+    public set ownerUserId(id: BigInt) {
+        this.ownerID = id;
+    }
+
+    public addComponent(component: Component): void {
         this.componentIDs.add(component.id);
         this.invalidate();
     }

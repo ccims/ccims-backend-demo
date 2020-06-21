@@ -32,8 +32,8 @@ export class RootApiResolver {
         return null;
     }
 
-    projects(): Array<ProjectResolver | null> {
-        return [null];
+    async projects(): Promise<Array<ProjectResolver>> {
+        return (await this.dbClient.getAllProjects()).map(project => new ProjectResolver(project, this.dbClient));
     }
 
     //###################Mutations
