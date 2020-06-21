@@ -1,7 +1,7 @@
-import { Issue } from "../domain/issues/Issue";
+import { Issue } from "../../domain/issues/Issue";
 import { CommentResolver } from "./CommentResolver";
 import marked from "marked";
-import { DBClient } from "../domain/DBClient";
+import { DBClient } from "../../domain/DBClient";
 
 export class IssueResolver {
 

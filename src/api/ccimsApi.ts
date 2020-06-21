@@ -5,7 +5,7 @@ import graphqlHTTP from "express-graphql";
 //import * as graphqlType from "type-graphql";
 import * as graphql from "graphql";
 import * as fs from "fs";
-import { RootApiResolver } from "./RootApiResolver";
+import { RootApiResolver } from "./graphqlResolvers/RootApiResolver";
 import path from "path";
 import { DBClient } from "../domain/DBClient";
 import { tokenResponseRouter } from "./tokenResponseRouter";

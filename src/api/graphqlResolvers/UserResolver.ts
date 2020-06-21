@@ -1,7 +1,7 @@
-import { User } from "../domain/users/User";
+import { User } from "../../domain/users/User";
 import { ComponentResolver } from "./ComponentResolver";
 import { ProjectResolver } from "./ProjectResolver";
-import { DBClient } from "../domain/DBClient";
+import { DBClient } from "../../domain/DBClient";
 
 export class UserResolver {
 
