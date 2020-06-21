@@ -19,7 +19,7 @@ const client = DBClient.create(pgOptions);
 
 client.then(async client => {
 
-    const thisWillFail = client.getUser(3n).catch(e => console.error("This wil fail: ", e));
+    /*const thisWillFail = client.getUser(3n).catch(e => console.error("This wil fail: ", e));
     console.log(thisWillFail);
     const testUser = await client.createUser(Math.random().toString().substring(10), "hello world");
     console.log(testUser);
@@ -32,7 +32,7 @@ client.then(async client => {
     const testComponent = await client.createComponent("testComponent", "this is my custom test component", new Set([await testProject]), await client.getIMSInfo(1n), testUser, imsData);
     console.log(testProject);
     console.log(testComponent);
-    await client.save();
+    await client.save();*/
     new CcimsApi(8080, client).start();
 })
 
