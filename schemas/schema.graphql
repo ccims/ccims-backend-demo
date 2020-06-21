@@ -63,6 +63,7 @@ input IssueInput {
     title: String
     body: String
     opened: Boolean
+    componentId: ID
 }
 
 type Comment implements Element {
@@ -111,7 +112,17 @@ input ComponentInput {
     name: String!
     description: String
     imsId: ID!
-    ownerUserName: String!
+    imsData: ImsData
+    ownerUsername: String!
+}
+
+interface ImsData {
+
+}
+
+type GitHubImsData {
+    repositoryName: String!
+    owner: String!
 }
 
 type IMS {

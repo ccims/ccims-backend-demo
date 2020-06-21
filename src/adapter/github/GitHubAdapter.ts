@@ -5,7 +5,7 @@ import { IMSData } from "../IMSData";
 import { GraphQLClient } from "graphql-request";
 import { User } from "../../domain/users/User";
 import { Component } from "../../domain/components/Component";
-import {IssueRequest, CommentRequest} from "./GitHubGraphqlTypes";
+import { IssueRequest, CommentRequest, CreateIssueMutation, RepositoryIdRequest } from "./GitHubGraphqlTypes";
 import { DBClient } from "../../domain/DBClient";
 import { GitHubCredential } from "./GitHubCredential";
 import { GitHubImsData } from "./GitHubIMSData";
@@ -17,23 +17,47 @@ export class GitHubAdapter implements IMSAdapter {
     private _component: Component;
     private _dbClient: DBClient;
 
-    constructor(url: string, imsData: IMSData, component: Component, dbClient: DBClient) {
-        if (!GitHubAdapter.isGithubImsData(imsData)) {
+    constructor(url: string, component: Component, dbClient: DBClient) {
+        if (!GitHubAdapter.isGithubImsData(component.imsData)) {
             throw new Error("The given ims Data wasn't github ims data");
         }
         this._url = url;
-        this._imsData = imsData as GitHubImsData;
         this._component = component;
+        this._imsData = component.imsData as GitHubImsData;
         this._dbClient = dbClient;
     }
 
-    async getIssues(user: User): Promise<Issue[]> {
-        const client = new GraphQLClient(this._url, {
+    private async checkImsData(user: User): Promise<void> {
+        if (typeof this._imsData.repositoryId !== "string" || this._imsData.repositoryId.length <= 0) {
+            this._imsData = {
+                repository: this._imsData.repository,
+                owner: this._imsData.owner,
+                repositoryId: (await (await new GraphQLClient(this._url, {
+                    headers: {
+                        authorization: (user.getIMSCredential(await this._component.getIMSInfo()) as GitHubCredential).oAuthToken
+                    }
+                })).request<RepositoryIdRequest>(`query {
+                    repository(name: "${this._imsData.repository}", owner: "${this._imsData.owner}"){
+                        id
+                        }
+                    }`)).repository.id,
+            };
+            this._component.imsData = this._imsData;
+            this._component.saveToDB();
+        }
+    }
+
+    private async getRequest(user: User): Promise<GraphQLClient> {
+        this.checkImsData(user);
+        return new GraphQLClient(this._url, {
             headers: {
                 authorization: (user.getIMSCredential(await this._component.getIMSInfo()) as GitHubCredential).oAuthToken
             }
         });
-        return client.request<IssueRequest>(`query {
+    }
+
+    async getIssues(user: User): Promise<Issue[]> {
+        return (await this.getRequest(user)).request<IssueRequest>(`query {
             repository(name:"${this._imsData.repository}", owner:"${this._imsData.owner}") {
                 issues (first: 100) {
                     nodes {
@@ -57,13 +81,22 @@ export class GitHubAdapter implements IMSAdapter {
         });
     }
 
-    async getComments(issue: Issue, user: User): Promise<IssueComment[]> {
-        const client = new GraphQLClient(this._url, {
-            headers: {
-                authorization: (user.getIMSCredential(await this._component.getIMSInfo()) as GitHubCredential).oAuthToken
-            }
+    async createIssue(user: User, issue: Issue): Promise<Issue> {
+        const imsInfo = await this._component.getIMSInfo();
+        return (await this.getRequest(user)).request<CreateIssueMutation>(`mutation CreateIssue {
+            createIssue(input: {
+              repositoryId: "${this._imsData.repositoryId}"
+              title: "${issue.title}"
+              body: "${issue.body}"
+            }){issue{id}}
+          }`).then((response: CreateIssueMutation): Issue => {
+            issue.id = response.createIssue.issue.id;
+            return issue;
         });
-        return client.request<CommentRequest>(`query {
+    }
+
+    async getComments(issue: Issue, user: User): Promise<IssueComment[]> {
+        return (await this.getRequest(user)).request<CommentRequest>(`query {
             node(id:"${issue.id}") {
                 comments (first: 100) {
                     nodes {

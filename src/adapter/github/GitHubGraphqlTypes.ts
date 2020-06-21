@@ -15,6 +15,14 @@ export interface IssueRequest {
     }
 }
 
+export interface CreateIssueMutation {
+    createIssue: {
+        issue: {
+            id: string
+        }
+    }
+}
+
 export interface CommentRequest {
     node: {
         comments: {
@@ -27,5 +35,11 @@ export interface CommentRequest {
                 createdAt: string;
             }>
         }
+    }
+}
+
+export interface RepositoryIdRequest {
+    repository: {
+        id: string
     }
 }

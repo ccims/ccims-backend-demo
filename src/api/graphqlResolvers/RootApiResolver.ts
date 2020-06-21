@@ -9,6 +9,7 @@ import { ComponentResolver } from "./ComponentResolver";
 import { InterfaceResolver } from "./InterfaceResolver";
 import { Issue } from "../../domain/issues/Issue";
 import { Component } from "../../domain/components/Component";
+import { IMSDataFactory } from "../../adapter/IMSDataFactory";
 
 export class RootApiResolver {
 
@@ -39,7 +40,7 @@ export class RootApiResolver {
     //###################Mutations
 
     createIssue(args: CreateIssueArgs): IssueResolver | null {
-        // TODO: Implement
+
         return null;
     }
 
@@ -76,6 +77,7 @@ export class RootApiResolver {
             project.description = args.data.description
         }
         project.name = args.data.name;
+        project.saveToDB();
         return new ProjectResolver(project, this.dbClient);
     }
 
@@ -83,6 +85,9 @@ export class RootApiResolver {
         const project = await Project.load(this.dbClient, BigInt(args.projectId));
         const component = await Component.load(this.dbClient, BigInt(args.componentId));
         project.addComponent(component);
+        component.addProject(project);
+        project.saveToDB();
+        component.saveToDB();
         return new ProjectResolver(project, this.dbClient);
     }
 
@@ -96,9 +101,13 @@ export class RootApiResolver {
         return false;
     }
 
-    createComponent(args: CreateProjectArgs): ComponentResolver | null {
-        // TODO: Implement
-        return null;
+    async createComponent(args: CreateComponentArgs): Promise<ComponentResolver | null> {
+        const owner = await this.dbClient.getUserByUsername(args.data.ownerUsername);
+        const imsInfo = await this.dbClient.getIMSInfo(BigInt(args.data.imsId));
+        const imsData = IMSDataFactory.toValidIMDData(args.data.imsData, imsInfo);
+        const component = await Component.create(this.dbClient, args.data.name, args.data.description || "", new Set<Project>(), imsInfo, owner, imsData);
+        component.saveToDB();
+        return new ComponentResolver(component, this.dbClient);
     }
 
     addProvidedInterface(args: AddRemoveProvidedUsedInterfaceArgs): ComponentResolver | null {
@@ -137,6 +146,7 @@ interface IssueInput {
     title?: string
     body?: string
     opened?: boolean
+    componentId?: string
 }
 interface UserInput {
     userName: string
@@ -146,7 +156,15 @@ interface ComponentInput {
     name: string
     description?: string
     imsId: string
-    ownerUserName: string
+    ownerUsername: string
+    imsData: ImsDataInput
+}
+interface ImsDataInput {
+
+}
+interface GitHubImsDataInput extends ImsDataInput {
+    repository: string,
+    owner: string
 }
 enum ImsType {
     GitHub
