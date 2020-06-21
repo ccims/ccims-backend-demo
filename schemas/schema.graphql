@@ -116,12 +116,8 @@ input ComponentInput {
     ownerUsername: String!
 }
 
-interface ImsData {
-
-}
-
-type GitHubImsData {
-    repositoryName: String!
+input ImsData {
+    repository: String!
     owner: String!
 }
 

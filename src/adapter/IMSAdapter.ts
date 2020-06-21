@@ -7,6 +7,6 @@ export interface IMSAdapter {
 
     getIssues(user: User): Promise<Array<Issue>>;
     getComments(issue: Issue, user: User): Promise<Array<IssueComment>>;
-    createIssue(user: User, issue: Issue): Promise<Issue>;
+    createIssue(user: User, title: string, body: string): Promise<Issue>;
 
 }

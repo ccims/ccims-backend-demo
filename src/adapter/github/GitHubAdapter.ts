@@ -9,19 +9,19 @@ import { IssueRequest, CommentRequest, CreateIssueMutation, RepositoryIdRequest 
 import { DBClient } from "../../domain/DBClient";
 import { GitHubCredential } from "./GitHubCredential";
 import { GitHubImsData } from "./GitHubIMSData";
+import { GitHubIMSInfo } from "./GitHubIMSInfo";
+import { IMSType } from "../IMSType";
 
 export class GitHubAdapter implements IMSAdapter {
 
-    private _url: string;
     private _imsData: GitHubImsData;
     private _component: Component;
     private _dbClient: DBClient;
 
-    constructor(url: string, component: Component, dbClient: DBClient) {
+    constructor(component: Component, dbClient: DBClient) {
         if (!GitHubAdapter.isGithubImsData(component.imsData)) {
             throw new Error("The given ims Data wasn't github ims data");
         }
-        this._url = url;
         this._component = component;
         this._imsData = component.imsData as GitHubImsData;
         this._dbClient = dbClient;
@@ -29,10 +29,14 @@ export class GitHubAdapter implements IMSAdapter {
 
     private async checkImsData(user: User): Promise<void> {
         if (typeof this._imsData.repositoryId !== "string" || this._imsData.repositoryId.length <= 0) {
+            const imsInfo = await this._component.getIMSInfo() as GitHubIMSInfo;
+            if (imsInfo.type != IMSType.GitHub) {
+                throw new Error("The given ims type isn't a github ims type was invalid.");
+            }
             this._imsData = {
                 repository: this._imsData.repository,
                 owner: this._imsData.owner,
-                repositoryId: (await (await new GraphQLClient(this._url, {
+                repositoryId: (await (await new GraphQLClient(imsInfo.endpoint, {
                     headers: {
                         authorization: (user.getIMSCredential(await this._component.getIMSInfo()) as GitHubCredential).oAuthToken
                     }
@@ -48,10 +52,14 @@ export class GitHubAdapter implements IMSAdapter {
     }
 
     private async getRequest(user: User): Promise<GraphQLClient> {
+        const imsInfo = await this._component.getIMSInfo() as GitHubIMSInfo;
+        if (imsInfo.type != IMSType.GitHub) {
+            throw new Error("The given ims type isn't a github ims type was invalid.");
+        }
         this.checkImsData(user);
-        return new GraphQLClient(this._url, {
+        return new GraphQLClient(imsInfo.endpoint, {
             headers: {
-                authorization: (user.getIMSCredential(await this._component.getIMSInfo()) as GitHubCredential).oAuthToken
+                authorization: (user.getIMSCredential(imsInfo) as GitHubCredential).oAuthToken
             }
         });
     }
@@ -81,17 +89,20 @@ export class GitHubAdapter implements IMSAdapter {
         });
     }
 
-    async createIssue(user: User, issue: Issue): Promise<Issue> {
+    async createIssue(user: User, title: string, body: string): Promise<Issue> {
         const imsInfo = await this._component.getIMSInfo();
         return (await this.getRequest(user)).request<CreateIssueMutation>(`mutation CreateIssue {
             createIssue(input: {
-              repositoryId: "${this._imsData.repositoryId}"
-              title: "${issue.title}"
-              body: "${issue.body}"
-            }){issue{id}}
+              repositoryId: "${this._imsData.repositoryId}", 
+              title: "${title}", 
+              body: "${body}"}) {
+              issue {
+                id
+                createdAt
+              }
+            }
           }`).then((response: CreateIssueMutation): Issue => {
-            issue.id = response.createIssue.issue.id;
-            return issue;
+            return new Issue(response.createIssue.issue.id, this._component, user, new Date(response.createIssue.issue.createdAt), title, body);
         });
     }
 
