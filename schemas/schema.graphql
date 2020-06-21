@@ -31,6 +31,25 @@ type Issue implements Element {
     bodyRendered: String
     comments: [Comment]
     opened: Boolean
+    issueType: IssueType
+    relatedIssues: [IssueRelation]
+}
+
+type IssueRelation {
+    issue: Issue
+    relationType: RelationType
+}
+
+enum RelationType {
+    RELATED_TO,
+    DUPLICATES,
+    DEPENDS,
+}
+
+enum IssueType {
+    UNCLASSIFIED,
+    BUG,
+    FEATURE_REQUEST,
 }
 
 type IssueInput {
@@ -53,8 +72,8 @@ type User implements Element {
 }
 
 type UserInput {
-    userName: string!
-    password: string
+    userName: String!
+    password: String
 }
 
 type Component implements Element {
@@ -63,6 +82,13 @@ type Component implements Element {
     issues: [Issue]
     projects: [Project]
     ims: IMS
+    interfaces: [Interface]
+    usedInterfaces: [Inteface]
+}
+
+type Interface implements Element {
+    hostComponent: Component
+    usingComponents: [Component]
 }
 
 type ComponentInput {
