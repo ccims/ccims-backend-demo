@@ -18,10 +18,13 @@ export function tokenRequestRouter(dbClient: DBClient) {
             if (typeof request.body.ccimsUser === "string" && typeof request.body.submit === "string" && request.body.submit == "1") {
                 const randomString = Buffer.from(((new Date().valueOf() >> (Math.random() * 10)) * (-Math.random() * 1000)).toString()).toString("base64");
                 const splitPoint = Math.floor(Math.random() * (randomString.length - 1)) + 1;
-                const state = randomString.substr(0, splitPoint) + "-" + request.body.ccimsUser + "-" + randomString.substr(splitPoint);
-                response.redirect(`https://github.com/login/oauth/authorize?client_id=${githubInfo.clientId}&redirect_uri=${githubInfo.redirectUri}&state=${state}`);
+                const state = encodeURIComponent(randomString.substr(0, splitPoint) + "-" + request.body.ccimsUser + "-" + randomString.substr(splitPoint));
+                const clientEncoded = encodeURIComponent(githubInfo.clientId);
+                const redirectEncoded = encodeURIComponent(githubInfo.redirectUri);
+                const redirectUrl = `https://github.com/login/oauth/authorize?client_id=${clientEncoded}&redirect_uri=${redirectEncoded}&state=${state}`;
                 console.log(state);
-                console.log(request);
+                console.log(redirectUrl);
+                response.redirect(redirectUrl);
             }
         } else {
             response.status(500).send("No github ims info found");
