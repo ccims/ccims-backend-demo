@@ -14,9 +14,11 @@ import { IMSDataFactory } from "../../adapter/IMSDataFactory";
 export class RootApiResolver {
 
     private readonly dbClient: DBClient;
+    private readonly _user: User;
 
-    constructor(dbClient: DBClient) {
+    constructor(user: User, dbClient: DBClient) {
         this.dbClient = dbClient;
+        this._user = user;
     }
 
     public async user(getUserArgs: GetUserArgs): Promise<UserResolver | null> {
@@ -39,9 +41,9 @@ export class RootApiResolver {
 
     //###################Mutations
 
-    createIssue(args: CreateIssueArgs): IssueResolver | null {
-
-        return null;
+    async createIssue(args: CreateIssueArgs): Promise<IssueResolver> {
+        const component = await Component.load(this.dbClient, BigInt(args.data.componentId));
+        return new IssueResolver(Issue.create(component, this._user, args.data.title || "untiteled ccims issue", args.data.body || "", this.dbClient), this.dbClient);
     }
 
     updateIssue(args: UpdateIssueArgs): IssueResolver | null {
@@ -160,11 +162,8 @@ interface ComponentInput {
     imsData: ImsDataInput
 }
 interface ImsDataInput {
-
-}
-interface GitHubImsDataInput extends ImsDataInput {
-    repository: string,
-    owner: string
+    repository?: string,
+    owner?: string
 }
 enum ImsType {
     GitHub

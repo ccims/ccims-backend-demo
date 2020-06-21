@@ -19,6 +19,7 @@ export interface CreateIssueMutation {
     createIssue: {
         issue: {
             id: string
+            createdAt: string;
         }
     }
 }

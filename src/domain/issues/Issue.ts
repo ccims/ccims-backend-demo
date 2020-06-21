@@ -4,6 +4,7 @@ import { IssueComment } from "./IssueComment";
 import { Client } from "pg";
 import { DatabaseElement } from "../DatabaseElement";
 import { DBClient } from "../DBClient";
+import { GitHubAdapter } from "../../adapter/github/GitHubAdapter";
 
 export class Issue {
 
@@ -77,5 +78,9 @@ export class Issue {
 
     public set id(id: string) {
         this._id = id;
+    }
+
+    public static async create(component: Component, creator: User, title: string, body: string, dbClient: DBClient): Issue {
+        return new GitHubAdapter(component, dbClient).createIssue(creator, title, body);
     }
 }
