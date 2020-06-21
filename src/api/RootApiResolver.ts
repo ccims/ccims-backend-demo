@@ -14,14 +14,6 @@ export class RootApiResolver {
         this.dbClient = dbClient;
     }
 
-    hello(): string {
-        return "world";
-    }
-
-    data(dataArgs: DataArgs): Array<string> {
-        return [dataArgs.a ? "a:" + dataArgs.a : "", dataArgs.b ? "b:" + dataArgs.b : ""];
-    }
-
     public async user(getUserArgs: GetUserArgs): Promise<UserResolver | null> {
         if (getUserArgs.username) {
             const user = await this.dbClient.getUserByUsername(getUserArgs.username);
