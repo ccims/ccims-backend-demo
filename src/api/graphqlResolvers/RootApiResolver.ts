@@ -4,7 +4,11 @@ import { User } from "../../domain/users/User";
 import { DBClient } from "../../domain/DBClient";
 import { ProjectResolver } from "./ProjectResolver";
 import { Project } from "../../domain/components/Project";
-import { GithubAdapter } from "../../adapter/github/GitHubAdapter";
+import { GitHubAdapter } from "../../adapter/github/GitHubAdapter";
+import { ComponentResolver } from "./ComponentResolver";
+import { InterfaceResolver } from "./InterfaceResolver";
+import { Issue } from "../../domain/issues/Issue";
+import { Component } from "../../domain/components/Component";
 
 export class RootApiResolver {
 
@@ -34,49 +38,97 @@ export class RootApiResolver {
 
     //###################Mutations
 
-    createIssue(data: IssueInput!): IssueResolver {
-
+    createIssue(args: CreateIssueArgs): IssueResolver | null {
+        // TODO: Implement
+        return null;
     }
 
-    updateIssue(issueId: ID!, data: IssueInput!): IssueResolver {
-
+    updateIssue(args: UpdateIssueArgs): IssueResolver | null {
+        // TODO: Implement
+        return null;
     }
 
-    removeIssue(issueId: ID!): boolean {
-
+    addIssueRelation(args: AddRemoveIssueRelationArgs): boolean {
+        // TODO: Implement
+        return false;
     }
 
-    createProject(data: ProjectInput!): ProjectResolver {
-
+    removeIssueRelation(args: AddRemoveIssueRelationArgs): boolean {
+        // TODO: Implement
+        return false;
     }
 
-    modifyProject(projectId: ID!, data: ProjectInput): ProjectResolver {
-
+    removeIssue(args: RemoveIssueArgs): boolean {
+        // TODO: Implement
+        return false;
     }
 
-    addComponentToProject(projectId: ID!, componentId: ID!): ProjectResolver {
-
+    async createProject(args: CreateProjectArgs): Promise<ProjectResolver> {
+        const user = await this.dbClient.getUserByUsername(args.data.ownerUsername);
+        const project = await Project.create(this.dbClient, args.data.name, args.data.description || "", user);
+        project.saveToDB();
+        return new ProjectResolver(project, this.dbClient);
     }
 
-    removeComponentFromProject(projectId: ID!, componentId: ID!): ProjectResolver {
-
+    async modifyProject(args: ModifyProjectArgs): Promise<ProjectResolver> {
+        const project = await Project.load(this.dbClient, BigInt(args.projectId));
+        if (args.data.description) {
+            project.description = args.data.description
+        }
+        project.name = args.data.name;
+        return new ProjectResolver(project, this.dbClient);
     }
 
-    removeProject(projectId: ID!): boolean {
-
+    async addComponentToProject(args: AddComponentToProjectArgs): Promise<ProjectResolver> {
+        const project = await Project.load(this.dbClient, BigInt(args.projectId));
+        const component = await Component.load(this.dbClient, BigInt(args.componentId));
+        project.addComponent(component);
+        return new ProjectResolver(project, this.dbClient);
     }
 
-    createComponent(data: ComponentInput): Component {
-
+    removeComponentFromProject(args: RemoveComponentFromProjectArgs): ProjectResolver | null {
+        // TODO: Implement
+        return null;
     }
 
-    removeComponent(componentId: ID!): Boolean {
-
+    removeProject(args: RemoveProjectArgs): boolean {
+        // TODO: Implement
+        return false;
     }
 
+    createComponent(args: CreateProjectArgs): ComponentResolver | null {
+        // TODO: Implement
+        return null;
+    }
 
-    createUser(data: UserInput!): User {
+    addProvidedInterface(args: AddRemoveProvidedUsedInterfaceArgs): ComponentResolver | null {
+        // TODO: Implement
+        return null;
+    }
 
+    removeProvidedInterface(args: AddRemoveProvidedUsedInterfaceArgs): ComponentResolver | null {
+        // TODO: Implement
+        return null;
+    }
+
+    addUsedInterface(args: AddRemoveProvidedUsedInterfaceArgs): ComponentResolver | null {
+        // TODO: Implement
+        return null;
+    }
+
+    removeUsedInterface(args: AddRemoveProvidedUsedInterfaceArgs): ComponentResolver | null {
+        // TODO: Implement
+        return null;
+    }
+
+    removeComponent(args: RemoveComponentArgs): boolean {
+        // TODO: Implement
+        return false;
+    }
+
+    addInterface(args: AddInterfaceArgs): InterfaceResolver | null {
+        // TODO: Implement
+        return null;
     }
 
 }
@@ -100,9 +152,12 @@ enum ImsType {
     GitHub
 }
 interface ProjectInput {
-    name: String
-    description?: String
-    ownerUsername: String
+    name: string
+    description?: string
+    ownerUsername: string
+}
+interface InterfaceInput {
+    name: string
 }
 
 interface GetUserArgs {
@@ -120,6 +175,10 @@ interface UpdateIssueArgs {
     issueId: string,
     data: IssueInput
 }
+interface AddRemoveIssueRelationArgs {
+    fromId: string,
+    toId: string
+}
 interface RemoveIssueArgs {
     id: string
 }
@@ -128,6 +187,7 @@ interface CreateProjectArgs {
 }
 interface ModifyProjectArgs {
     projectId: string
+    data: ProjectInput
 }
 interface AddComponentToProjectArgs {
     projectId: string,
@@ -141,5 +201,15 @@ interface RemoveProjectArgs {
     projectId: string
 }
 interface CreateComponentArgs {
-
+    data: ComponentInput
+}
+interface AddRemoveProvidedUsedInterfaceArgs {
+    componentId: string,
+    interfaceId: string
+}
+interface RemoveComponentArgs {
+    componentId: string
+}
+interface AddInterfaceArgs {
+    data: InterfaceInput
 }
