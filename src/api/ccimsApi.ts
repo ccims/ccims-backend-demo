@@ -42,7 +42,7 @@ export class CcimsApi {
             graphiql: true
         }));
         const requestRouter = await tokenRequestRouter(this.dbClient);
-        this.expressServer.use("/tokenResponse", tokenResponseRouter);
+        this.expressServer.use("/tokenResponse", tokenResponseRouter(this.dbClient));
         this.expressServer.use("/tokenRequest", requestRouter);
         this.expressServer.listen({ port: this.port }, console.error);
         console.log("Started api");
