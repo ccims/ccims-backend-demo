@@ -29,7 +29,7 @@ client.then(async client => {
     console.log(testUser);
     const testProject = await client.createProject("my project", "this is my project", testUser);
     const imsData : GitHubImsData = {repository: "https://www.github.com/nk-coding/TuringSchlimmulator", owner:"nk-coding"};
-    const testComponent = await client.createComponent("testComponent", "this is my custom test component", await testProject, await client.getIMSInfo(1n), testUser, imsData);
+    const testComponent = await client.createComponent("testComponent", "this is my custom test component", new Set([await testProject]), await client.getIMSInfo(1n), testUser, imsData);
     console.log(testProject);
     console.log(testComponent);
     await client.save();
