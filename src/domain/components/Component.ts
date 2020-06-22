@@ -147,4 +147,8 @@ export class Component extends DatabaseElement {
     public async getComponentInterfaces(): Promise<Set<ComponentInterface>> {
         return new Set(await Promise.all(Array.from(this.interfaceIDs).map(id => this.imsClient.getComponentInterface(id))))
     }
+
+    public async getConsumedComponentInterfaces(): Promise<Set<ComponentInterface>> {
+        return new Set(await Promise.all(Array.from(this.consumedInterfaceIDs).map(id => this.imsClient.getComponentInterface(id))));
+    }
 }
