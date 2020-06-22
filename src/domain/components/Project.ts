@@ -11,11 +11,11 @@ export class Project extends DatabaseElement {
 
     private _description: string;
 
-    private componentIDs: Set<BigInt>;
+    private componentIDs: Set<string>;
 
-    private ownerID: BigInt;
+    private ownerID: string;
 
-    private constructor(client: DBClient, id: BigInt, name: string, description: string, components: Set<BigInt>, ownerID: BigInt) {
+    private constructor(client: DBClient, id: string, name: string, description: string, components: Set<string>, ownerID: string) {
         super(client, id);
         this._name = name;
         this._description = description;
@@ -23,18 +23,18 @@ export class Project extends DatabaseElement {
         this.ownerID = ownerID;
     }
 
-    public static async create(client: DBClient, name: string, description: string, owner: User): Promise<Project> {
+    public static async _create(client: DBClient, name: string, description: string, owner: User): Promise<Project> {
         const pg = client.client;
         return pg.query("INSERT INTO projects (name, description, components, owner) VALUES ($1, $2, $3, $4) RETURNING id;",
             [name, description, [], owner.id]).then(async res => {
-                const id: BigInt = res.rows[0]["id"];
-                return await Project.load(client, id);
+                const id: string = res.rows[0]["id"];
+                return await Project._load(client, id);
             });
     }
 
-    public static async load(client: DBClient, id: BigInt): Promise<Project> {
+    public static async _load(client: DBClient, id: string): Promise<Project> {
         const pg = client.client
-        return pg.query("SELECT name, description, components, owner FROM projects WHERE id=$1::bigint;", [id]).then(res => {
+        return pg.query("SELECT name, description, components, owner FROM projects WHERE id=$1;", [id]).then(res => {
             if (res.rowCount !== 1) {
                 throw new Error("illegal number of components found");
             } else {
@@ -67,11 +67,11 @@ export class Project extends DatabaseElement {
         this.invalidate();
     }
 
-    public get ownerUserId(): BigInt {
+    public get ownerUserId(): string {
         return this.ownerID;
     }
 
-    public set ownerUserId(id: BigInt) {
+    public set ownerUserId(id: string) {
         this.ownerID = id;
     }
 

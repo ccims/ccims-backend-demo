@@ -5,33 +5,33 @@ import { Component } from "./Component";
 export class ComponentInterface extends DatabaseElement {
     private _name: string;
 
-    private hostComponentID: BigInt;
+    private hostComponentID: string;
 
-    private usingComponentsIDs: Set<BigInt>;
+    private usingComponentsIDs: Set<string>;
 
     
 
-    public constructor(client: DBClient, id: BigInt, name: string, hostComponentID: BigInt, usingComponentsIDs: Set<BigInt>) {
+    public constructor(client: DBClient, id: string, name: string, hostComponentID: string, usingComponentsIDs: Set<string>) {
         super(client, id);
         this._name = name;
         this.hostComponentID = hostComponentID;
         this.usingComponentsIDs = usingComponentsIDs;
     }
 
-    public static async create(client: DBClient, name: string, hostComponent: Component): Promise<ComponentInterface> {
+    public static async _create(client: DBClient, name: string, hostComponent: Component): Promise<ComponentInterface> {
         const pg = client.client;
         return pg.query("INSERT INTO interfaces (name, host_component, using_components) VALUES ($1, $2, $3) RETURNING id;",
             [name, hostComponent.id,[]]).then(async res => {
-                const id: BigInt = res.rows[0]["id"];
-                const newComponentInterface = await ComponentInterface.load(client, id);
+                const id: string = res.rows[0]["id"];
+                const newComponentInterface = await ComponentInterface._load(client, id);
                 hostComponent._addComponentInterface(newComponentInterface);
                 return newComponentInterface;
             });
     }
 
-    public static async load(client: DBClient, id: BigInt): Promise<ComponentInterface> {
+    public static async _load(client: DBClient, id: string): Promise<ComponentInterface> {
         const pg = client.client
-        return pg.query("SELECT name, host_component, using_components FROM interfaces WHERE id=$1::bigint;", [id]).then(res => {
+        return pg.query("SELECT name, host_component, using_components FROM interfaces WHERE id=$1;", [id]).then(res => {
             if (res.rowCount !== 1) {
                 throw new Error("illegal number of components found");
             } else {

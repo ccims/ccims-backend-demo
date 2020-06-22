@@ -9,7 +9,7 @@ export class GitHubIMSInfo extends IMSInfo {
     private readonly _clientSecret: string;
     private readonly _redirectUri: string;
 
-    public constructor(client: DBClient, id: BigInt, data: string) {
+    public constructor(client: DBClient, id: string, data: string) {
         super(client, id, IMSType.GitHub);
         const dataParsed = JSON.parse(data) as GithubImsData;
         if (!GitHubIMSInfo.isGithubData(dataParsed)) {

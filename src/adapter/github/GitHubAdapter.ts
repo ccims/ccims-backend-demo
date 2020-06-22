@@ -81,8 +81,8 @@ export class GitHubAdapter implements IMSAdapter {
               }
         }`).then(async (response: IssueRequest): Promise<Issue> => {
             const metaParsed = this.parseMetadataBody(response.node.body);
-            const component = await Component.load(this._dbClient, metaParsed.metadata.componentId);
-            const user = await User.load(this._dbClient, metaParsed.metadata.creatorId);
+            const component = await this._dbClient.getComponent(metaParsed.metadata.componentId);
+            const user = await this._dbClient.getUser(metaParsed.metadata.creatorId);
             return new Issue(response.node.id, component, user, new Date(response.node.createdAt), response.node.title, metaParsed.bodyText, !response.node.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type);
         });
     }
@@ -236,20 +236,20 @@ export class GitHubAdapter implements IMSAdapter {
 
     private static toIssueMetadata(data: IssueMetadata): IssueMetadata {
         const newData: IssueMetadata = {
-            componentId: 0n,
-            creatorId: 0n,
+            componentId: "0",
+            creatorId: "0",
             linkedIssues: [],
             type: IssueType.UNCLASSIFIED
         }
         if (typeof data.componentId === "string" || typeof data.componentId === "number") {
-            newData.componentId = BigInt(data.componentId);
+            newData.componentId = data.componentId;
         } else if (typeof data.componentId == "bigint") {
             newData.componentId = data.componentId;
         } else {
             throw new Error("The Issue metadata of the issue are incorrect");
         }
         if (typeof data.creatorId === "string" || typeof data.creatorId === "number") {
-            newData.creatorId = BigInt(data.creatorId);
+            newData.creatorId = data.creatorId;
         } else if (typeof data.creatorId == "bigint") {
             newData.creatorId = data.creatorId;
         } else {
@@ -258,7 +258,7 @@ export class GitHubAdapter implements IMSAdapter {
         if (typeof data.linkedIssues !== "undefined" && data.linkedIssues instanceof Array) {
             data.linkedIssues.forEach((relation: Object) => {
                 const relationData = relation as { _sourceIssue: Object, _destIssue: Object, _sourceComponent: Object, _destComponent: Object, _relationType: Object };
-                if (typeof relation === "object" && typeof relationData._sourceIssue === "string" && typeof relationData._destIssue === "string" && typeof relationData._sourceComponent === "bigint" && typeof relationData._destComponent === "bigint" && typeof relationData._relationType === "string") {
+                if (typeof relation === "object" && typeof relationData._sourceIssue === "string" && typeof relationData._destIssue === "string" && typeof relationData._sourceComponent === "string" && typeof relationData._destComponent === "bigint" && typeof relationData._relationType === "string") {
                     newData.linkedIssues.push(new IssueRelation(relationData._relationType as IssueRelationType, relationData._sourceIssue, relationData._sourceComponent, relationData._destIssue, relationData._sourceComponent));
                 } else {
                     throw new Error("The Issue metadata of the issue are incorrect");
@@ -276,8 +276,8 @@ export class GitHubAdapter implements IMSAdapter {
 }
 
 interface IssueMetadata {
-    componentId: BigInt,
-    creatorId: BigInt,
+    componentId: string,
+    creatorId: string,
     linkedIssues: Array<IssueRelation>,
     type: IssueType
 }

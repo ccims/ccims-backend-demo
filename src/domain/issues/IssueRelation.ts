@@ -12,31 +12,31 @@ export class IssueRelation {
 
 
     private readonly _sourceIssue: string;
-    private readonly _sourceComponent: BigInt;
+    private readonly _sourceComponent: string;
     public async getSourceIssue(user: User, dbClient: DBClient): Promise<Issue> {
-        return Issue.load(this._sourceIssue, await Component.load(dbClient, this._sourceComponent), user, dbClient);
+        return Issue.load(this._sourceIssue, await dbClient.getComponent(this._sourceComponent), user, dbClient);
     }
     public get srcIssueId(): string {
         return this._sourceIssue;
     }
-    public get srcComponentId(): BigInt {
+    public get srcComponentId(): string {
         return this._sourceComponent;
     }
 
 
     private readonly _destIssue: string;
-    private readonly _destComponent: BigInt;
+    private readonly _destComponent: string;
     public async getDestIssue(user: User, dbClient: DBClient): Promise<Issue> {
-        return Issue.load(this._destIssue, await Component.load(dbClient, this._destComponent), user, dbClient);
+        return Issue.load(this._destIssue, await dbClient.getComponent(this._destComponent), user, dbClient);
     }
     public get destIssueId(): string {
         return this._destIssue;
     }
-    public get dstComponentId(): BigInt {
+    public get dstComponentId(): string {
         return this._destComponent;
     }
 
-    constructor(type: IssueRelationType, sourceId: string, sourceComponentId: BigInt, destId: string, dstComponentId: BigInt) {
+    constructor(type: IssueRelationType, sourceId: string, sourceComponentId: string, destId: string, dstComponentId: string) {
         this._relationType = type;
         this._sourceIssue = sourceId;
         this._destIssue = destId;

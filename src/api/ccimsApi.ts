@@ -39,7 +39,7 @@ export class CcimsApi {
         */
         this.expressServer.use("/api", graphqlHTTP({
             schema: this.schema,
-            rootValue: new RootApiResolver(await this.dbClient.getUser(1n), this.dbClient),
+            rootValue: new RootApiResolver(await this.dbClient.getUser("1"), this.dbClient),
             graphiql: true,
         }));
         const requestRouter = await tokenRequestRouter(this.dbClient);

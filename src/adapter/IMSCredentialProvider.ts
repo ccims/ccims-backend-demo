@@ -16,7 +16,7 @@ export class IMSCredentialProvider {
         }
     }
 
-    public static async parseAsync(client: DBClient, id: BigInt, secret: string): Promise<IMSCredential> {
+    public static async parseAsync(client: DBClient, id: string, secret: string): Promise<IMSCredential> {
         const info = await client.getIMSInfo(id);
         return IMSCredentialProvider.parse(info, secret);
     }
