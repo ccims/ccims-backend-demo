@@ -14,6 +14,7 @@ export function tokenResponseRouter(dbClient: DBClient) {
 
     resRouter.use("/github", (request, response, next) => {
         console.log("Token response from github: ", request.query["code"]);
+        response.send("Token will be added");
         next();
         if (request.query["code"] !== undefined) {
             const code: string = request.query["code"] as string;
