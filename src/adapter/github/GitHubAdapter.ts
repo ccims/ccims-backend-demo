@@ -35,7 +35,7 @@ export class GitHubAdapter implements IMSAdapter {
             if (imsInfo.type != IMSType.GitHub) {
                 throw new Error("The given ims type isn't a github ims type was invalid.");
             }
-            const authHead = "token " + (user.getIMSCredential(await this._component.getIMSInfo()) as GitHubCredential).oAuthToken;
+            const authHead = "token " + (user.getIMSCredential(imsInfo) as GitHubCredential).oAuthToken;
             const repositoryData = await new GraphQLClient(imsInfo.endpoint, {
                 headers: {
                     authorization: authHead
@@ -51,7 +51,7 @@ export class GitHubAdapter implements IMSAdapter {
                 repositoryId: repositoryData.repository.id,
             };
             this._component.imsData = this._imsData;
-            this._component.saveToDB();
+            await this._dbClient.save();
         }
     }
 
@@ -208,24 +208,14 @@ export class GitHubAdapter implements IMSAdapter {
             linkedIssues: relatedIssues,
             type: type
         };
-        const extraInfo = "```ccims\n" + JSON.stringify(metadata, (key: string, value: any): any => {
-            if (typeof value === "string") {
-                return "id:" + value.toString() + "n";
-            }
-            return value;
-        }, 4) + "\n```\n";
+        const extraInfo = "```ccims\n" + JSON.stringify(metadata, null, 4) + "\n```\n";
         return (extraInfo + bodyText).replace(/"/g, '\\"');
     }
 
     private parseMetadataBody(body: string): { bodyText: string, metadata: IssueMetadata } {
         const findMetadataRegex = new RegExp(/```ccims\r?\n((.|\r?\n)*?)\r?\n```\r?\n/gm, "gm");
         const matchedPart = findMetadataRegex.exec(body);
-        const metadata = GitHubAdapter.toIssueMetadata(JSON.parse((matchedPart || ["{}"])[1], (key: string, value: any): any => {
-            if (typeof value === "string" && value.startsWith("id:") && value.endsWith("n")) {
-                return value.substr(3, value.length - 4);
-            }
-            return value;
-        }));
+        const metadata = GitHubAdapter.toIssueMetadata(JSON.parse((matchedPart || ["{}"])[1]));
         return { bodyText: body.substr(findMetadataRegex.lastIndex), metadata: metadata };
     }
 
@@ -241,16 +231,12 @@ export class GitHubAdapter implements IMSAdapter {
             linkedIssues: [],
             type: IssueType.UNCLASSIFIED
         }
-        if (typeof data.componentId === "string" || typeof data.componentId === "number") {
-            newData.componentId = data.componentId;
-        } else if (typeof data.componentId == "string") {
+        if (typeof data.componentId === "string") {
             newData.componentId = data.componentId;
         } else {
             throw new Error("The Issue metadata of the issue are incorrect");
         }
-        if (typeof data.creatorId === "string" || typeof data.creatorId === "number") {
-            newData.creatorId = data.creatorId;
-        } else if (typeof data.creatorId == "string") {
+        if (typeof data.creatorId === "string") {
             newData.creatorId = data.creatorId;
         } else {
             throw new Error("The Issue metadata of the issue are incorrect");
