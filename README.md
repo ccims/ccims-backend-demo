@@ -10,7 +10,24 @@ The final system will be completly rewritten
 
 # Usage
 ## With Docker
-TODO
+
+```bash
+docker-compose -f stack.yml up
+```
+
+`postgres.json` for docker:
+
+```json
+{
+    "$schema": "./postgres.schema.json",
+    "username": "demo-user",
+    "password": "demo-password",
+    "database": "CCIMS",
+    "server": "db"
+}
+```
+
+
 ## Without docker
 All commands below should be executed in the root directory of this repository
 1. Download and install [PostgreSQL](https://www.postgresql.org/)
@@ -27,6 +44,6 @@ All commands below should be executed in the root directory of this repository
     "$schema": "./postgres.schema.json",
     "username": "[POSTGRS_USER]",
     "password": "[POSTRES_PASSWIORD]",
-    "database": "[YOUR_DB_NAME]"  
+    "database": "[YOUR_DB_NAME]"
 }
 ```

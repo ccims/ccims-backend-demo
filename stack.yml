@@ -1,0 +1,22 @@
+version: '3.1'
+
+services:
+  server:
+    image: "node:14"
+    user: "node"
+    working_dir: /home/node/app
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./:/home/node/app
+    ports:
+      - "8080"
+    command: "npm run start-docker"
+    depends_on:
+      - db
+  db:
+    build:
+      context: .
+      dockerfile: database.dockerfile
+    ports:
+      - "5432"
