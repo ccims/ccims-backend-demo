@@ -2,7 +2,6 @@ import { Client, ClientConfig } from "pg";
 import { User } from "./users/User";
 import { IMSInfo } from "../adapter/IMSInfo";
 import { IMSInfoProvider } from "../adapter/IMSInfoProvider";
-import { DummyUser } from "./users/DummyUser";
 import { Project } from "./components/Project";
 import { Component } from "./components/Component";
 import { IMSCredential } from "../adapter/IMSCredential";
@@ -12,7 +11,7 @@ import { ComponentInterface } from "./components/ComponentInterface";
 export class DBClient {
     private readonly _client: Client;
 
-    private readonly _defaultUser: User;
+    //private readonly _defaultUser: User;
 
     private readonly users: Map<BigInt, User>;
     private readonly imsInfos: Map<BigInt, IMSInfo>;
@@ -27,9 +26,6 @@ export class DBClient {
         this.projects = new Map();
         this.components = new Map();
         this.componentInterfaces = new Map();
-
-        this._defaultUser = new DummyUser(this);
-        this.users.set(this._defaultUser.id, this._defaultUser);
     }
 
     public static async create(config: ClientConfig): Promise<DBClient> {
@@ -137,9 +133,7 @@ export class DBClient {
         }
     }
 
-    public get defaultUser(): User {
-        return this._defaultUser;
-    }
+    
 
     public async save(): Promise<void> {
         await Promise.all(Array.from(this.users, ([id, user]) => user.saveToDB()));
