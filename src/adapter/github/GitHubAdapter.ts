@@ -5,13 +5,14 @@ import { IMSData } from "../IMSData";
 import { GraphQLClient } from "graphql-request";
 import { User } from "../../domain/users/User";
 import { Component } from "../../domain/components/Component";
-import { IssueRequest, CommentRequest, CreateIssueMutation, RepositoryIdRequest, RemoveIssueMutation } from "./GitHubGraphqlTypes";
+import { IssueRequest, CommentRequest, CreateIssueMutation, RepositoryIdRequest, RemoveIssueMutation, ModifyIssueMutation, ReopenIssueMutation, CloseIssueMutation } from "./GitHubGraphqlTypes";
 import { DBClient } from "../../domain/DBClient";
 import { GitHubCredential } from "./GitHubCredential";
 import { GitHubImsData } from "./GitHubIMSData";
 import { GitHubIMSInfo } from "./GitHubIMSInfo";
 import { IMSType } from "../IMSType";
 import { IssueType } from "../../domain/issues/IssueType";
+import { IssueRelation } from "../../domain/issues/IssueRelation";
 
 export class GitHubAdapter implements IMSAdapter {
 
@@ -79,40 +80,20 @@ export class GitHubAdapter implements IMSAdapter {
                 }
               }
         }`).then(async (response: IssueRequest): Promise<Issue> => {
-            const issueData = response.node;
-            const findMetadataRegex = new RegExp(/```ccims\r?\n((.|\r?\n)*?)\r?\n```\r?\n/gm, "gm");
-            const matchedPart = findMetadataRegex.exec(issueData.body);
-            const metadata = GitHubAdapter.toIssueMetadata(JSON.parse((matchedPart || ["{}"])[1], (key: string, value: any): any => {
-                if (typeof value === "string" && value.startsWith("id:") && value.endsWith("n")) {
-                    return BigInt(value.substr(3, value.length - 4));
-                }
-                return value;
-            }));
-            const restBody = issueData.body.substr(findMetadataRegex.lastIndex);
-            const component = await Component.load(this._dbClient, metadata.componentId);
-            const user = await User.load(this._dbClient, metadata.creatorId);
-            return new Issue(issueData.id, component, user, new Date(issueData.createdAt), issueData.title, restBody, !issueData.closed, metadata.linkedIssues, metadata.type);
+            const metaParsed = this.parseMetadataBody(response.node.body);
+            const component = await Component.load(this._dbClient, metaParsed.metadata.componentId);
+            const user = await User.load(this._dbClient, metaParsed.metadata.creatorId);
+            return new Issue(response.node.id, component, user, new Date(response.node.createdAt), response.node.title, metaParsed.bodyText, !response.node.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type);
         });
     }
 
     async createIssue(user: User, title: string, body: string, type: IssueType): Promise<Issue> {
         const imsInfo = await this._component.getIMSInfo();
-        const extraInfo = "```ccims\n" + JSON.stringify({
-            componentId: this._component.id,
-            creatorId: user.id,
-            linkedIssues: new Array<string>()
-        }, (key: string, value: any): any => {
-            if (typeof value === "bigint") {
-                return "id:" + value.toString() + "n";
-            }
-            return value;
-        }, 4) + "\n```\n";
-        const finishedBody = extraInfo + body;
         return (await this.getRequest(user)).request<CreateIssueMutation>(`mutation CreateIssue {
             createIssue(input: {
               repositoryId: "${this._imsData.repositoryId}", 
               title: "${title}", 
-              body: "${finishedBody.replace(/"/g, '\\"')}"}) {
+              body: "${this.createMetadataBodyNewIssue(user, body)}"}) {
               issue {
                 id
                 createdAt
@@ -121,6 +102,59 @@ export class GitHubAdapter implements IMSAdapter {
             }
           }`).then((response: CreateIssueMutation): Issue => {
             return new Issue(response.createIssue.issue.id, this._component, user, new Date(response.createIssue.issue.createdAt), title, body, !response.createIssue.issue.closed, [], type);
+        });
+    }
+
+    async updateIssue(user: User, issue: Issue): Promise<boolean> {
+        const imsInfo = await this._component.getIMSInfo();
+        let setParams = "";
+        if (issue.fieldsToSave.body) {
+            setParams += `body: "${this.createMetadataBodyByIssue(user, issue)}"\n`;
+        }
+        if (issue.fieldsToSave.title) {
+            setParams += `title: "${issue.title}"\n`;
+        }
+        if (issue.fieldsToSave.issueRelations) {
+            setParams += `body: "${this.createMetadataBodyByIssue(user, issue)}"\n`;
+        }
+        if (issue.fieldsToSave.type) {
+            setParams += `body: "${this.createMetadataBodyByIssue(user, issue)}"\n`;
+        }
+        return (await this.getRequest(user)).request<ModifyIssueMutation>(`mutation UpdateIssue {
+            updateIssue(input:{
+              id: "${issue.id}"
+              ${setParams}
+            }) {
+              clientMutationId
+            }
+          }`).then((response: ModifyIssueMutation): boolean => {
+            return true;
+        });
+    }
+
+    async reopenIssue(user: User, issue: Issue): Promise<boolean> {
+        const imsInfo = await this._component.getIMSInfo();
+        return (await this.getRequest(user)).request<ReopenIssueMutation>(`mutation ReopenIssue {
+            reopenIssue(input:{
+              issueId: "${issue.id}"
+            }) {
+              clientMutationId
+            }
+          }`).then((response: ReopenIssueMutation): boolean => {
+            return true;
+        });
+    }
+
+    async closeIssue(user: User, issue: Issue): Promise<boolean> {
+        const imsInfo = await this._component.getIMSInfo();
+        return (await this.getRequest(user)).request<CloseIssueMutation>(`mutation ReopenIssue {
+            closeIssue(input:{
+              issueId: "${issue.id}"
+            }) {
+              clientMutationId
+            }
+          }`).then((response: CloseIssueMutation): boolean => {
+            return true;
         });
     }
 
@@ -157,6 +191,42 @@ export class GitHubAdapter implements IMSAdapter {
             });
             return comments;
         });
+    }
+
+    private createMetadataBodyByIssue(user: User, issue: Issue): string {
+        return this.createMetadataBody(issue.component, user, issue.issueRelations, issue.type, issue.body);
+    }
+
+    private createMetadataBodyNewIssue(user: User, bodyText: string): string {
+        return this.createMetadataBody(this._component, user, [], IssueType.UNCLASSIFIED, bodyText);
+    }
+
+    private createMetadataBody(component: Component, creator: User, relatedIssues: IssueRelation[], type: IssueType, bodyText: string): string {
+        const metadata: IssueMetadata = {
+            componentId: component.id,
+            creatorId: creator.id,
+            linkedIssues: relatedIssues,
+            type: type
+        };
+        const extraInfo = "```ccims\n" + JSON.stringify(metadata, (key: string, value: any): any => {
+            if (typeof value === "bigint") {
+                return "id:" + value.toString() + "n";
+            }
+            return value;
+        }, 4) + "\n```\n";
+        return (extraInfo + bodyText).replace(/"/g, '\\"');
+    }
+
+    private parseMetadataBody(body: string): { bodyText: string, metadata: IssueMetadata } {
+        const findMetadataRegex = new RegExp(/```ccims\r?\n((.|\r?\n)*?)\r?\n```\r?\n/gm, "gm");
+        const matchedPart = findMetadataRegex.exec(body);
+        const metadata = GitHubAdapter.toIssueMetadata(JSON.parse((matchedPart || ["{}"])[1], (key: string, value: any): any => {
+            if (typeof value === "string" && value.startsWith("id:") && value.endsWith("n")) {
+                return BigInt(value.substr(3, value.length - 4));
+            }
+            return value;
+        }));
+        return { bodyText: body.substr(findMetadataRegex.lastIndex), metadata: metadata };
     }
 
     private static isGithubImsData(imsData: IMSData) {
@@ -207,6 +277,6 @@ export class GitHubAdapter implements IMSAdapter {
 interface IssueMetadata {
     componentId: BigInt,
     creatorId: BigInt,
-    linkedIssues: Array<string>,
+    linkedIssues: Array<IssueRelation>,
     type: IssueType
 }

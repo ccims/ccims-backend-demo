@@ -21,12 +21,18 @@
             "description": "The name of the PostgreSQL Database in correct casing"
         },
         "server": {
-            "type": "string",
+            "type": [
+                "string",
+                "null"
+            ],
             "title": "Server hostname",
             "description": "The hostname or IP address, the system will be able to find the PostgreSQL Server at"
         },
         "port": {
-            "type": "number",
+            "type": [
+                "number",
+                "null"
+            ],
             "title": "Server port",
             "description": "The port the PostgreSQL Server is listening on for clients"
         }
@@ -35,6 +41,9 @@
     "required": [
         "username",
         "password",
+        "database",
+        "server",
+        "port",
         "$schema"
     ]
 }

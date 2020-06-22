@@ -51,6 +51,6 @@ export class IssueResolver {
     }
 
     public relatedIssues(): Array<IssueRelationResolver> {
-        return this.issue.linkedIssueIds.map(async id => new IssueResolver(await Issue.load(id, this.issue.component, this.user, this.dbClient), this.user, this.dbClient));
+        return this.issue.issueRelations.map(relation => new IssueRelationResolver(relation, this.user, this.dbClient));
     }
 }

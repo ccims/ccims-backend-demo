@@ -18,6 +18,22 @@ export interface CreateIssueMutation {
     }
 }
 
+export interface ModifyIssueMutation {
+    updateIssue: {
+        clientMutationId: string
+    }
+}
+export interface ReopenIssueMutation {
+    reopenIssue: {
+        clientMutationId: string
+    }
+}
+export interface CloseIssueMutation {
+    closeIssue: {
+        clientMutationId: string
+    }
+}
+
 export interface RemoveIssueMutation {
     deleteIssue: {
         clientMutationId: string;
