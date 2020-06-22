@@ -21,6 +21,7 @@ export class User extends DatabaseElement {
         this.componentIDs = components;
         this.imsCredentials = new Map();
         imsCredentials.forEach(credential => this.imsCredentials.set(credential.info.id, credential))
+
     }
 
     public static async _load(client: DBClient, id: string): Promise<User> {

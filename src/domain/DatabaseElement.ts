@@ -1,16 +1,16 @@
-import {Client} from "pg";
+import { Client } from "pg";
 import { DBClient } from "./DBClient";
 
 export class DatabaseElement {
-    private readonly _id : string;
+    private readonly _id: string;
 
-    protected readonly client : Client;
+    protected readonly client: Client;
 
-    protected readonly imsClient : DBClient;
+    protected readonly imsClient: DBClient;
 
-    private needsSave : boolean = false;
+    private needsSave: boolean = false;
 
-    protected constructor(client : DBClient, id : string) {
+    protected constructor(client: DBClient, id: string) {
         this.imsClient = client;
         this.client = client.client;
         this._id = id;
@@ -28,15 +28,15 @@ export class DatabaseElement {
      * this is called to syc data to the database
      * I know that this is not the most efficient way of doing this, but it will work for now
      */
-    protected async save() : Promise<void> {
-        
+    protected async save(): Promise<void> {
+
     }
 
-    protected invalidate() : void {
+    protected invalidate(): void {
         this.needsSave = true;
     }
 
-    public get id() : string {
+    public get id(): string {
         return this._id;
     }
 }

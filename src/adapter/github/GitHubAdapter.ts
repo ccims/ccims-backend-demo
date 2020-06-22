@@ -35,7 +35,7 @@ export class GitHubAdapter implements IMSAdapter {
             if (imsInfo.type != IMSType.GitHub) {
                 throw new Error("The given ims type isn't a github ims type was invalid.");
             }
-            const authHead = "token " + (user.getIMSCredential(await this._component.getIMSInfo()) as GitHubCredential).oAuthToken;
+            const authHead = "token " + (user.getIMSCredential(imsInfo) as GitHubCredential).oAuthToken;
             const repositoryData = await new GraphQLClient(imsInfo.endpoint, {
                 headers: {
                     authorization: authHead
@@ -51,7 +51,7 @@ export class GitHubAdapter implements IMSAdapter {
                 repositoryId: repositoryData.repository.id,
             };
             this._component.imsData = this._imsData;
-            this._component.saveToDB();
+            await this._dbClient.save();
         }
     }
 
