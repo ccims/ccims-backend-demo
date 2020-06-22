@@ -30,7 +30,7 @@ export class User extends DatabaseElement {
                 throw new Error("illegal number of users found");
             } else {
                 const imsCredentials = new Set(await Promise.all((res.rows[0]["ims_login"] as IMSCredentialDBEntry[]).map(entry => IMSCredentialProvider.parseAsync(client, entry.id, entry.secret))));
-                return new User(client, id, res.rows[0]["username"], res.rows[0]["password"] as string, res.rows[0]["components"], imsCredentials);
+                return new User(client, id, res.rows[0]["username"], res.rows[0]["password"] as string, new Set(res.rows[0]["components"]), imsCredentials);
             }
         })
     }
