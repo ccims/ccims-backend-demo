@@ -33,11 +33,11 @@ export class ComponentResolver {
     }
 
     public async interfaces(): Promise<Array<InterfaceResolver | null>> {
-        return Array.from(await this.component.getConsumedComponentInterfaces()).map(compIface => new InterfaceResolver(compIface, this.dbClient));
+        return Array.from(await this.component.getComponentInterfaces()).map(compIface => new InterfaceResolver(compIface, this.dbClient))
     }
 
     public async usedInterfaces(): Promise<Array<InterfaceResolver>> {
-        return Array.from(await this.component.getComponentInterfaces()).map(compIface => new InterfaceResolver(compIface, this.dbClient))
+        return Array.from(await this.component.getConsumedComponentInterfaces()).map(compIface => new InterfaceResolver(compIface, this.dbClient));
     }
 
     public issues(): Array<IssueResolver | null> {

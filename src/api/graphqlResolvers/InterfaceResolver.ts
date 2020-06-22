@@ -17,6 +17,10 @@ export class InterfaceResolver {
         return this.componentInterface.id.toString();
     }
 
+    public name(): string {
+        return this.componentInterface.name;
+    }
+
     public async hostComponent(): Promise<ComponentResolver> {
         return new ComponentResolver(await this.componentInterface.getHostComponent(), this.dbClient);
     }
