@@ -15,7 +15,7 @@ export class Project extends DatabaseElement {
 
     private ownerID: BigInt;
 
-    private constructor(client: DBClient, id: BigInt, name: string, description: string, components: BigInt[], ownerID: BigInt) {
+    private constructor(client: DBClient, id: BigInt, name: string, description: string, components: Set<BigInt>, ownerID: BigInt) {
         super(client, id);
         this._name = name;
         this._description = description;
@@ -38,7 +38,7 @@ export class Project extends DatabaseElement {
             if (res.rowCount !== 1) {
                 throw new Error("illegal number of components found");
             } else {
-                return new Project(client, id, res.rows[0]["name"], res.rows[0]["description"], res.rows[0]["components"], res.rows[0]["owner"]);
+                return new Project(client, id, res.rows[0]["name"], res.rows[0]["description"], new Set(res.rows[0]["components"]), res.rows[0]["owner"]);
             }
         })
     }
@@ -77,11 +77,13 @@ export class Project extends DatabaseElement {
 
     public addComponent(component: Component): void {
         this.componentIDs.add(component.id);
+        component._addProject(this);
         this.invalidate();
     }
 
     public removeComponent(component: Component): void {
         this.componentIDs.delete(component.id);
+        component._removeProject(this);
         this.invalidate();
     }
 

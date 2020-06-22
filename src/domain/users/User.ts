@@ -14,11 +14,11 @@ export class User extends DatabaseElement {
 
     private imsCredentials: Map<BigInt, IMSCredential>;
 
-    protected constructor(client: DBClient, id: BigInt, userName: string, password: string, components: BigInt[], imsCredentials: IMSCredential[]) {
+    protected constructor(client: DBClient, id: BigInt, userName: string, password: string, components: Set<BigInt>, imsCredentials: Set<IMSCredential>) {
         super(client, id);
         this._userName = userName;
-        this._password = password;
-        this.componentIDs = new Set(components);
+        this._password = password
+        this.componentIDs = components;
         this.imsCredentials = new Map();
         imsCredentials.forEach(credential => this.imsCredentials.set(credential.info.id, credential))
     }
@@ -29,7 +29,7 @@ export class User extends DatabaseElement {
             if (res.rowCount !== 1) {
                 throw new Error("illegal number of users found");
             } else {
-                const imsCredentials = await Promise.all((res.rows[0]["ims_login"] as IMSCredentialDBEntry[]).map(entry => IMSCredentialProvider.parseAsync(client, entry.id, entry.secret)));
+                const imsCredentials = new Set(await Promise.all((res.rows[0]["ims_login"] as IMSCredentialDBEntry[]).map(entry => IMSCredentialProvider.parseAsync(client, entry.id, entry.secret))));
                 return new User(client, id, res.rows[0]["username"], res.rows[0]["password"] as string, res.rows[0]["components"], imsCredentials);
             }
         })

@@ -35,7 +35,8 @@ client.then(async client => {
     const testComponent = await client.createComponent("testComponent", "this is my custom test component", new Set([await testProject]), await client.getIMSInfo(1n), testUser, imsData);
     console.log(testProject);
     console.log(testComponent);
-    await client.save();*/
+    */
+    await client.save();
     new CcimsApi(8080, client).start();
 })
 
