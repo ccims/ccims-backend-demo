@@ -24,6 +24,7 @@ export class CcimsApi {
         //this.apolloServer = undefined;
         this.expressServer = Express();
         this.schema = graphql.buildSchema(fs.readFileSync("schemas/schema.graphql").toString());
+        graphql.graphql(this.schema, "", null)
         this.dbClient = dbClient;
     }
 
@@ -39,7 +40,7 @@ export class CcimsApi {
         this.expressServer.use("/api", graphqlHTTP({
             schema: this.schema,
             rootValue: new RootApiResolver(await this.dbClient.getUser(1n), this.dbClient),
-            graphiql: true
+            graphiql: true,
         }));
         const requestRouter = await tokenRequestRouter(this.dbClient);
         this.expressServer.use("/tokenResponse", tokenResponseRouter(this.dbClient));

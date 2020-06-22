@@ -13,6 +13,7 @@ import { IMSDataFactory } from "../../adapter/IMSDataFactory";
 import { IssueType } from "../../domain/issues/IssueType";
 import { IssueRelation, IssueRelationType } from "../../domain/issues/IssueRelation";
 import { IssueRelationResolver } from "./IssueRelationResolver";
+import { ComponentInterface } from "../../domain/components/ComponentInterface";
 
 export class RootApiResolver {
 
@@ -92,7 +93,7 @@ export class RootApiResolver {
     async createProject(args: CreateProjectArgs): Promise<ProjectResolver> {
         const user = await this.dbClient.getUserByUsername(args.data.ownerUsername);
         const project = await Project.create(this.dbClient, args.data.name, args.data.description || "", user);
-        project.saveToDB();
+        this.dbClient.save();
         return new ProjectResolver(project, this.dbClient);
     }
 
@@ -102,7 +103,7 @@ export class RootApiResolver {
             project.description = args.data.description
         }
         project.name = args.data.name;
-        project.saveToDB();
+        this.dbClient.save();
         return new ProjectResolver(project, this.dbClient);
     }
 
@@ -110,8 +111,7 @@ export class RootApiResolver {
         const project = await Project.load(this.dbClient, BigInt(args.projectId));
         const component = await Component.load(this.dbClient, BigInt(args.componentId));
         project.addComponent(component);
-        project.saveToDB();
-        component.saveToDB();
+        this.dbClient.save();
         return new ProjectResolver(project, this.dbClient);
     }
 
@@ -130,28 +130,24 @@ export class RootApiResolver {
         const imsInfo = await this.dbClient.getIMSInfo(BigInt(args.data.imsId));
         const imsData = IMSDataFactory.toValidIMDData(args.data.imsData, imsInfo);
         const component = await Component.create(this.dbClient, args.data.name, args.data.description || "", new Set<Project>(), imsInfo, owner, imsData);
-        component.saveToDB();
+        this.dbClient.save();
         return new ComponentResolver(component, this.dbClient);
     }
 
-    addProvidedInterface(args: AddRemoveProvidedUsedInterfaceArgs): ComponentResolver | null {
-        // TODO: Implement
-        return null;
+    async addUsedInterface(args: AddRemoveProvidedUsedInterfaceArgs): Promise<ComponentResolver> {
+        const componentInterface = await ComponentInterface.load(this.dbClient, BigInt(args.interfaceId));
+        const usingComponent = await Component.load(this.dbClient, BigInt(args.componentId));
+        usingComponent.addConsumedComponentInterface(componentInterface);
+        this.dbClient.save();
+        return new ComponentResolver(usingComponent, this.dbClient);
     }
 
-    removeProvidedInterface(args: AddRemoveProvidedUsedInterfaceArgs): ComponentResolver | null {
-        // TODO: Implement
-        return null;
-    }
-
-    addUsedInterface(args: AddRemoveProvidedUsedInterfaceArgs): ComponentResolver | null {
-        // TODO: Implement
-        return null;
-    }
-
-    removeUsedInterface(args: AddRemoveProvidedUsedInterfaceArgs): ComponentResolver | null {
-        // TODO: Implement
-        return null;
+    async removeUsedInterface(args: AddRemoveProvidedUsedInterfaceArgs): Promise<ComponentResolver> {
+        const componentInterface = await ComponentInterface.load(this.dbClient, BigInt(args.interfaceId));
+        const usingComponent = await Component.load(this.dbClient, BigInt(args.componentId));
+        usingComponent.removeConsumedComponentInterface(componentInterface);
+        this.dbClient.save();
+        return new ComponentResolver(usingComponent, this.dbClient);
     }
 
     removeComponent(args: RemoveComponentArgs): boolean {
@@ -159,9 +155,16 @@ export class RootApiResolver {
         return false;
     }
 
-    addInterface(args: AddInterfaceArgs): InterfaceResolver | null {
+    async createInterface(args: AddInterfaceArgs): Promise<InterfaceResolver> {
+        const component = await Component.load(this.dbClient, BigInt(args.data.hostComponentId))
+        const componentInterface = await ComponentInterface.create(this.dbClient, args.data.name, component);
+        this.dbClient.save();
+        return new InterfaceResolver(componentInterface, this.dbClient);
+    }
+
+    removeInterface(args: RemoveInterfaceArgs): boolean {
         // TODO: Implement
-        return null;
+        return false;
     }
 
 }
@@ -198,6 +201,7 @@ interface ProjectInput {
 }
 interface InterfaceInput {
     name: string
+    hostComponentId: string
 }
 interface AddIssueRelationInput {
     fromId: string,
@@ -265,4 +269,7 @@ interface RemoveComponentArgs {
 }
 interface AddInterfaceArgs {
     data: InterfaceInput
+}
+interface RemoveInterfaceArgs {
+    interfaceId: string
 }

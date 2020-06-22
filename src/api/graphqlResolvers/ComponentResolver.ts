@@ -32,21 +32,19 @@ export class ComponentResolver {
         return null;
     }
 
-    public interfaces(): Array<InterfaceResolver | null> {
-        //TODO: Implement
-        return [null];
+    public async interfaces(): Promise<Array<InterfaceResolver | null>> {
+        return Array.from(await this.component.getConsumedComponentInterfaces()).map(compIface => new InterfaceResolver(compIface, this.dbClient));
     }
 
-    public usedInterfaces(): Array<InterfaceResolver | null> {
-        //TODO: Implement
-        return [null];
+    public async usedInterfaces(): Promise<Array<InterfaceResolver>> {
+        return Array.from(await this.component.getComponentInterfaces()).map(compIface => new InterfaceResolver(compIface, this.dbClient))
     }
 
     public issues(): Array<IssueResolver | null> {
         return [null];
     }
 
-    public projects(): Array<ProjectResolver | null> {
-        return [null];
+    public async projects(): Promise<Array<ProjectResolver | null>> {
+        return Array.from(await this.component.getProjects()).map(project => new ProjectResolver(project, this.dbClient));
     }
 }

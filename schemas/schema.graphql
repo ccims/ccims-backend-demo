@@ -17,13 +17,12 @@ type Mutation {
     removeProject(projectId: ID!): Boolean
 
     createComponent(data: ComponentInput): Component
-    addProvidedInterface(componentId: ID!, interfaceId: ID!): Component
-    removeProvidedInterface(componentId: ID!, interfaceId: ID!): Component
     addUsedInterface(componentId: ID!, interfaceId: ID!): Component
     removeUsedInterface(componentId: ID!, interfaceId: ID!): Component
     removeComponent(componentId: ID!):Boolean
 
-    addInterface(data: InterfaceInput!): Interface
+    createInterface(data: InterfaceInput!): Interface
+    removeIntrface(interfaceId: ID!): Boolean
 
 }
 
@@ -117,6 +116,7 @@ type Interface implements Element {
 
 input InterfaceInput {
     name: String!
+    hostComponentId: ID!
 }
 
 input ComponentInput {
