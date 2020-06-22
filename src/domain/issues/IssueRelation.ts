@@ -5,8 +5,6 @@ import { User } from "../users/User";
 
 export class IssueRelation {
 
-    private readonly dbClient: DBClient;
-
     private readonly _relationType: IssueRelationType;
     public get relationType(): IssueRelationType {
         return this._relationType;
@@ -15,8 +13,8 @@ export class IssueRelation {
 
     private readonly _sourceIssue: string;
     private readonly _sourceComponent: BigInt;
-    public async getSourceIssue(user: User): Promise<Issue> {
-        return Issue.load(this._sourceIssue, await Component.load(this.dbClient, this._sourceComponent), user, this.dbClient);
+    public async getSourceIssue(user: User, dbClient: DBClient): Promise<Issue> {
+        return Issue.load(this._sourceIssue, await Component.load(dbClient, this._sourceComponent), user, dbClient);
     }
     public get srcIssueId(): string {
         return this._sourceIssue;
@@ -28,8 +26,8 @@ export class IssueRelation {
 
     private readonly _destIssue: string;
     private readonly _destComponent: BigInt;
-    public async getDestIssue(user: User): Promise<Issue> {
-        return Issue.load(this._destIssue, await Component.load(this.dbClient, this._destComponent), user, this.dbClient);
+    public async getDestIssue(user: User, dbClient: DBClient): Promise<Issue> {
+        return Issue.load(this._destIssue, await Component.load(dbClient, this._destComponent), user, dbClient);
     }
     public get destIssueId(): string {
         return this._destIssue;
@@ -38,11 +36,10 @@ export class IssueRelation {
         return this._destComponent;
     }
 
-    constructor(type: IssueRelationType, sourceId: string, sourceComponentId: BigInt, destId: string, dstComponentId: BigInt, dbClient: DBClient) {
+    constructor(type: IssueRelationType, sourceId: string, sourceComponentId: BigInt, destId: string, dstComponentId: BigInt) {
         this._relationType = type;
         this._sourceIssue = sourceId;
         this._destIssue = destId;
-        this.dbClient = dbClient;
         this._sourceComponent = sourceComponentId;
         this._destComponent = dstComponentId;
     }

@@ -128,7 +128,7 @@ export class Issue {
     public async addIssueRelation(type: IssueRelationType, sourceId: string, sourceComponentId: BigInt, destId: string, dstComponentId: BigInt, dbClient: DBClient): Promise<IssueRelation> {
         let issueRelation: IssueRelation | undefined = this.issueRelations.find(relation => relation.srcIssueId == sourceId && relation.destIssueId == destId && relation.srcComponentId == BigInt(sourceComponentId) && relation.dstComponentId == BigInt(dstComponentId));
         if (!issueRelation) {
-            issueRelation = new IssueRelation(type, sourceId, sourceComponentId, destId, dstComponentId, dbClient);
+            issueRelation = new IssueRelation(type, sourceId, sourceComponentId, destId, dstComponentId);
             this._linkedIssues.push(issueRelation);
         }
         this._fieldsToSave.issueRelations = true;

@@ -12,7 +12,7 @@ import { GitHubImsData } from "./GitHubIMSData";
 import { GitHubIMSInfo } from "./GitHubIMSInfo";
 import { IMSType } from "../IMSType";
 import { IssueType } from "../../domain/issues/IssueType";
-import { IssueRelation } from "../../domain/issues/IssueRelation";
+import { IssueRelation, IssueRelationType } from "../../domain/issues/IssueRelation";
 
 export class GitHubAdapter implements IMSAdapter {
 
@@ -256,9 +256,10 @@ export class GitHubAdapter implements IMSAdapter {
             throw new Error("The Issue metadata of the issue are incorrect");
         }
         if (typeof data.linkedIssues !== "undefined" && data.linkedIssues instanceof Array) {
-            data.linkedIssues.forEach(issueId => {
-                if (typeof issueId === "string") {
-                    newData.linkedIssues.push(issueId);
+            data.linkedIssues.forEach((relation: Object) => {
+                const relationData = relation as { _sourceIssue: Object, _destIssue: Object, _sourceComponent: Object, _destComponent: Object, _relationType: Object };
+                if (typeof relation === "object" && typeof relationData._sourceIssue === "string" && typeof relationData._destIssue === "string" && typeof relationData._sourceComponent === "bigint" && typeof relationData._destComponent === "bigint" && typeof relationData._relationType === "string") {
+                    newData.linkedIssues.push(new IssueRelation(relationData._relationType as IssueRelationType, relationData._sourceIssue, relationData._sourceComponent, relationData._destIssue, relationData._sourceComponent));
                 } else {
                     throw new Error("The Issue metadata of the issue are incorrect");
                 }

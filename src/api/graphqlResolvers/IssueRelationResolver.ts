@@ -16,11 +16,11 @@ export class IssueRelationResolver {
     }
 
     public async sourceIssue(): Promise<IssueResolver> {
-        return new IssueResolver(await this.relation.getSourceIssue(this.user), this.user, this.dbClient);
+        return new IssueResolver(await this.relation.getSourceIssue(this.user, this.dbClient), this.user, this.dbClient);
     }
 
     public async destIssue(): Promise<IssueResolver> {
-        return new IssueResolver(await this.relation.getDestIssue(this.user), this.user, this.dbClient);
+        return new IssueResolver(await this.relation.getDestIssue(this.user, this.dbClient), this.user, this.dbClient);
     }
 
     public relationType(): IssueRelationType {
