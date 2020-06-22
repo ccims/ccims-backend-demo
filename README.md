@@ -30,3 +30,17 @@ All commands below should be executed in the root directory of this repository
     "database": "[YOUR_DB_NAME]"  
 }
 ```
+
+# Adding github api key
+1. Goto https://github.com/settings/apps
+1. Create a new Github app
+1. Check `Identifying and authorizing users -> Request user authorization (OAuth) during installation`
+1. Set `Identifying and authorizing users -> User authorization callback URL` to `http://localhost:8080/tokenResponse/github` (Or the address where the ccims backend is reachable)
+1. Set `Repository permissions -> Issues` to `Read & Write`
+1. Enter the client id and client secret in the file `defaultUser.sql` (and the redirectUri in case it differs from the one given above)
+1. Execute the `defaultUser.sql` script
+1. Start the backend
+1. Navigate to http://localhost:8080/tokenRequest/github (Or the url where the backend is reachable)
+1. Enter `admin` and press `Start authorization`
+1. Authorize the github app
+1. Once authorized you should be redirected back to the backend and see the message `Token will be added`
