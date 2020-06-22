@@ -13,11 +13,11 @@ export class DBClient {
 
     //private readonly _defaultUser: User;
 
-    private readonly users: Map<BigInt, User>;
-    private readonly imsInfos: Map<BigInt, IMSInfo>;
-    private readonly projects: Map<BigInt, Project>;
-    private readonly components: Map<BigInt, Component>;
-    private readonly componentInterfaces: Map<BigInt, ComponentInterface>;
+    private readonly users: Map<string, User>;
+    private readonly imsInfos: Map<string, IMSInfo>;
+    private readonly projects: Map<string, Project>;
+    private readonly components: Map<string, Component>;
+    private readonly componentInterfaces: Map<string, ComponentInterface>;
 
     private constructor(client: Client) {
         this._client = client;
@@ -41,16 +41,16 @@ export class DBClient {
     public async createUser(userName: string, password: string): Promise<User> {
         const newUser = await this.getUserByUsername(userName).then(
             () => { throw new Error("username already in use") },
-            async () => User.create(this, userName, password));
+            async () => User._create(this, userName, password));
         this.users.set(newUser.id, newUser);
         return newUser;
     }
 
-    public async getUser(id: BigInt): Promise<User> {
+    public async getUser(id: string): Promise<User> {
         if (this.users.has(id)) {
             return this.users.get(id) as User;
         } else {
-            const newUser = await User.load(this, id);
+            const newUser = await User._load(this, id);
             this.users.set(id, newUser);
             return newUser;
         }
@@ -65,7 +65,7 @@ export class DBClient {
         }
     }
 
-    public async getIMSInfo(id: BigInt): Promise<IMSInfo> {
+    public async getIMSInfo(id: string): Promise<IMSInfo> {
         if (this.imsInfos.has(id)) {
             return this.imsInfos.get(id) as IMSInfo;
         } else {
@@ -81,16 +81,16 @@ export class DBClient {
     }
 
     public async createProject(name: string, description: string, owner: User): Promise<Project> {
-        const newProject = await Project.create(this, name, description, owner);
+        const newProject = await Project._create(this, name, description, owner);
         this.projects.set(newProject.id, newProject);
         return newProject;
     }
 
-    public async getProject(id: BigInt): Promise<Project> {
+    public async getProject(id: string): Promise<Project> {
         if (this.projects.has(id)) {
             return this.projects.get(id) as Project;
         } else {
-            const newProject = await Project.load(this, id);
+            const newProject = await Project._load(this, id);
             this.projects.set(id, newProject);
             return newProject;
         }
@@ -102,32 +102,32 @@ export class DBClient {
     }
 
     public async createComponent(name: string, description: string, projects: Set<Project>, ims: IMSInfo, owner: User, imsData: IMSData): Promise<Component> {
-        const newComponent = await Component.create(this, name, description, projects, ims, owner, imsData);
+        const newComponent = await Component._create(this, name, description, projects, ims, owner, imsData);
         this.components.set(newComponent.id, newComponent);
         return newComponent;
     }
 
-    public async getComponent(id: BigInt): Promise<Component> {
+    public async getComponent(id: string): Promise<Component> {
         if (this.components.has(id)) {
             return this.components.get(id) as Component;
         } else {
-            const newComponent = await Component.load(this, id);
+            const newComponent = await Component._load(this, id);
             this.components.set(id, newComponent);
             return newComponent;
         }
     }
 
     public async createComponentInterface(name: string, hostComponent: Component): Promise<ComponentInterface> {
-        const newComponentInterface = await ComponentInterface.create(this, name, hostComponent);
+        const newComponentInterface = await ComponentInterface._create(this, name, hostComponent);
         this.componentInterfaces.set(newComponentInterface.id, newComponentInterface);
         return newComponentInterface;
     }
 
-    public async getComponentInterface(id: BigInt): Promise<ComponentInterface> {
+    public async getComponentInterface(id: string): Promise<ComponentInterface> {
         if (this.componentInterfaces.has(id)) {
             return this.componentInterfaces.get(id) as ComponentInterface;
         } else {
-            const newComponentInterface = await ComponentInterface.load(this, id);
+            const newComponentInterface = await ComponentInterface._load(this, id);
             this.componentInterfaces.set(id, newComponentInterface);
             return newComponentInterface;
         }

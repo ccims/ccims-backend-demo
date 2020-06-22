@@ -8,36 +8,36 @@ DROP TYPE IF EXISTS ims_type;
 --\connect ccims
 
 CREATE TABLE projects (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255),
     description TEXT,
-    components INTEGER[],
-    owner INTEGER NOT NULL
+    components BIGINT[],
+    owner BIGINT NOT NULL
 );
 
 CREATE TYPE ims_type AS ENUM ('GitHub');
 
 CREATE TABLE components (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255),
     description TEXT,
-    owner INTEGER NOT NULL,
-    projects INTEGER[],
-    ims INTEGER,
+    owner BIGINT NOT NULL,
+    projects BIGINT[],
+    ims BIGINT,
     ims_data JSON,
-    interfaces INTEGER[],
-    consumed_interfaces INTEGER[]
+    interfaces BIGINT[],
+    consumed_interfaces BIGINT[]
 );
 
 CREATE TABLE interfaces (
-    id SERIAL PRIMARY KEY,
-    host_component INTEGER,
-    using_components INTEGER[],
+    id BIGSERIAL PRIMARY KEY,
+    host_component BIGINT,
+    using_components BIGINT[],
     name TEXT
 );
 
 CREATE TABLE issue_management_systems (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     type IMS_TYPE,
     data TEXT
 );
@@ -45,9 +45,9 @@ CREATE TABLE issue_management_systems (
 INSERT INTO issue_management_systems (type, data) VALUES ('GitHub','{"endpoint":"https://api.github.com/graphql", "clientId":"0000", "clientSecret":"0000","redirectUri":"hallo"}');
 
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    components INTEGER[] NOT NULL,
+    components BIGINT[] NOT NULL,
     ims_login JSON[] NOT NULL
 );

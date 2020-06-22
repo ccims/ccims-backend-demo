@@ -13,20 +13,20 @@ export class Component extends DatabaseElement {
 
     private _description: string;
 
-    private projectIDs: Set<BigInt>;
+    private projectIDs: Set<string>;
 
-    private imsID: BigInt;
+    private imsID: string;
 
-    private ownerID: BigInt;
+    private ownerID: string;
 
     private _imsData: IMSData;
 
-    private interfaceIDs: Set<BigInt>
+    private interfaceIDs: Set<string>
 
-    private consumedInterfaceIDs: Set<BigInt>
+    private consumedInterfaceIDs: Set<string>
 
-    private constructor(client: DBClient, id: BigInt, name: string, description: string, projectIDs: Set<BigInt>, imsID: BigInt,
-         ownerID: BigInt, imsData: IMSData, interfaceIDs: Set<BigInt>, consumedInterfaceIDs: Set<BigInt>) {
+    private constructor(client: DBClient, id: string, name: string, description: string, projectIDs: Set<string>, imsID: string,
+         ownerID: string, imsData: IMSData, interfaceIDs: Set<string>, consumedInterfaceIDs: Set<string>) {
         super(client, id);
         this._name = name;
         this._description = description;
@@ -38,21 +38,21 @@ export class Component extends DatabaseElement {
         this.consumedInterfaceIDs = consumedInterfaceIDs;
     }
 
-    public static async create(client: DBClient, name: string, description: string, projects: Set<Project>, ims: IMSInfo, owner: User, imsData: IMSData): Promise<Component> {
+    public static async _create(client: DBClient, name: string, description: string, projects: Set<Project>, ims: IMSInfo, owner: User, imsData: IMSData): Promise<Component> {
         const pg = client.client;
         return pg.query("INSERT INTO components (name, description, owner, projects, ims, ims_data, interfaces, consumed_interfaces) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;",
             [name, description, owner.id, Array.from(projects).map(project => project.id), ims.id, imsData, [], []]).then(async res => {
-                const id: BigInt = res.rows[0]["id"];
-                const newComponent = await Component.load(client, id);
+                const id: string = res.rows[0]["id"];
+                const newComponent = await Component._load(client, id);
                 projects.forEach(project => project.addComponent(newComponent));
                 owner.addComponent(newComponent);
                 return newComponent;
             });
     }
 
-    public static async load(client: DBClient, id: BigInt): Promise<Component> {
+    public static async _load(client: DBClient, id: string): Promise<Component> {
         const pg = client.client
-        return pg.query("SELECT id, name, description, owner, projects, ims, ims_data, interfaces, consumed_interfaces FROM components WHERE id=$1::bigint;", [id]).then(res => {
+        return pg.query("SELECT id, name, description, owner, projects, ims, ims_data, interfaces, consumed_interfaces FROM components WHERE id=$1;", [id]).then(res => {
             if (res.rowCount !== 1) {
                 throw new Error("illegal number of components found");
             } else {

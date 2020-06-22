@@ -125,8 +125,8 @@ export class Issue {
         return this._fieldsToSave;
     }
 
-    public async addIssueRelation(type: IssueRelationType, sourceId: string, sourceComponentId: BigInt, destId: string, dstComponentId: BigInt, dbClient: DBClient): Promise<IssueRelation> {
-        let issueRelation: IssueRelation | undefined = this.issueRelations.find(relation => relation.srcIssueId == sourceId && relation.destIssueId == destId && relation.srcComponentId == BigInt(sourceComponentId) && relation.dstComponentId == BigInt(dstComponentId));
+    public async addIssueRelation(type: IssueRelationType, sourceId: string, sourceComponentId: string, destId: string, dstComponentId: string, dbClient: DBClient): Promise<IssueRelation> {
+        let issueRelation: IssueRelation | undefined = this.issueRelations.find(relation => relation.srcIssueId == sourceId && relation.destIssueId == destId && relation.srcComponentId == sourceComponentId && relation.dstComponentId == dstComponentId);
         if (!issueRelation) {
             issueRelation = new IssueRelation(type, sourceId, sourceComponentId, destId, dstComponentId);
             this._linkedIssues.push(issueRelation);
@@ -135,8 +135,8 @@ export class Issue {
         return issueRelation;
     }
 
-    public async removeIssueRelation(sourceId: string, sourceComponentId: BigInt, destId: string): Promise<boolean> {
-        const removedRelations = this.issueRelations.filter(relation => !(relation.srcIssueId == sourceId && relation.destIssueId == destId && relation.srcComponentId == BigInt(sourceComponentId)));
+    public async removeIssueRelation(sourceId: string, sourceComponentId: string, destId: string): Promise<boolean> {
+        const removedRelations = this.issueRelations.filter(relation => !(relation.srcIssueId == sourceId && relation.destIssueId == destId && relation.srcComponentId == sourceComponentId));
         let removedAny = false;
         if (removedRelations.length < this.issueRelations.length) {
             removedAny = true;

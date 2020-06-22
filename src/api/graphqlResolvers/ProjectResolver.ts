@@ -26,7 +26,7 @@ export class ProjectResolver {
     }
 
     public async ownerUsername(): Promise<string> {
-        const user = await User.load(this.dbClient, this.project.ownerUserId);
+        const user = await this.dbClient.getUser(this.project.ownerUserId);
         return user.userName;
     }
 

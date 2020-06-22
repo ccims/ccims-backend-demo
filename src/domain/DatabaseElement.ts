@@ -2,7 +2,7 @@ import {Client} from "pg";
 import { DBClient } from "./DBClient";
 
 export class DatabaseElement {
-    private readonly _id : BigInt;
+    private readonly _id : string;
 
     protected readonly client : Client;
 
@@ -10,7 +10,7 @@ export class DatabaseElement {
 
     private needsSave : boolean = false;
 
-    protected constructor(client : DBClient, id : BigInt) {
+    protected constructor(client : DBClient, id : string) {
         this.imsClient = client;
         this.client = client.client;
         this._id = id;
@@ -36,7 +36,7 @@ export class DatabaseElement {
         this.needsSave = true;
     }
 
-    public get id() : BigInt {
+    public get id() : string {
         return this._id;
     }
 }

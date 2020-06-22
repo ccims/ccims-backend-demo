@@ -10,11 +10,11 @@ export class User extends DatabaseElement {
 
     private _password: string;
 
-    private componentIDs: Set<BigInt>;
+    private componentIDs: Set<string>;
 
-    private imsCredentials: Map<BigInt, IMSCredential>;
+    private imsCredentials: Map<string, IMSCredential>;
 
-    protected constructor(client: DBClient, id: BigInt, userName: string, password: string, components: Set<BigInt>, imsCredentials: Set<IMSCredential>) {
+    protected constructor(client: DBClient, id: string, userName: string, password: string, components: Set<string>, imsCredentials: Set<IMSCredential>) {
         super(client, id);
         this._userName = userName;
         this._password = password
@@ -23,9 +23,9 @@ export class User extends DatabaseElement {
         imsCredentials.forEach(credential => this.imsCredentials.set(credential.info.id, credential))
     }
 
-    public static async load(client: DBClient, id: BigInt): Promise<User> {
+    public static async _load(client: DBClient, id: string): Promise<User> {
         const pg = client.client;
-        return pg.query("SELECT id, username, password, components, ims_login FROM users WHERE id=$1::bigint;", [id]).then(async res => {
+        return pg.query("SELECT id, username, password, components, ims_login FROM users WHERE id=$1;", [id]).then(async res => {
             if (res.rowCount !== 1) {
                 throw new Error("illegal number of users found");
             } else {
@@ -35,12 +35,12 @@ export class User extends DatabaseElement {
         })
     }
 
-    public static async create(client: DBClient, userName: string, password: string): Promise<User> {
+    public static async _create(client: DBClient, userName: string, password: string): Promise<User> {
         const pg = client.client;
         return pg.query("INSERT INTO users (username, password, components, ims_login) VALUES ($1, $2, $3, $4) RETURNING id;",
             [userName, password, [], []]).then(async res => {
-                const id: BigInt = res.rows[0]["id"];
-                return await User.load(client, id);
+                const id: string = res.rows[0]["id"];
+                return await User._load(client, id);
             });
     }
 
@@ -49,7 +49,7 @@ export class User extends DatabaseElement {
             [this._userName, this._password, Array.from(this.componentIDs), Array.from(this.imsCredentials, ([key, value]) => this.createCredentialDBEntry(key, value)), this.id]);
     }
 
-    private createCredentialDBEntry(key: BigInt, value: IMSCredential): IMSCredentialDBEntry {
+    private createCredentialDBEntry(key: string, value: IMSCredential): IMSCredentialDBEntry {
         const entry: IMSCredentialDBEntry = {
             id: key,
             secret: value.getData()
@@ -100,6 +100,6 @@ export class User extends DatabaseElement {
 }
 
 interface IMSCredentialDBEntry {
-    id: BigInt;
+    id: string;
     secret: string;
 }

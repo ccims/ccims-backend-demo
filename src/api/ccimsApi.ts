@@ -10,6 +10,7 @@ import path from "path";
 import { DBClient } from "../domain/DBClient";
 import { tokenResponseRouter } from "./tokenResponseRouter";
 import { tokenRequestRouter } from "./tokenRequestRouter";
+import cors from "cors";
 
 export class CcimsApi {
 
@@ -37,11 +38,15 @@ export class CcimsApi {
             app: this.expressServer
         });
         */
-        this.expressServer.use("/api", graphqlHTTP({
-            schema: this.schema,
-            rootValue: new RootApiResolver(await this.dbClient.getUser(1n), this.dbClient),
-            graphiql: true,
-        }));
+        this.expressServer.use(
+            "/api",
+            cors(),
+            graphqlHTTP({
+                schema: this.schema,
+                rootValue: new RootApiResolver(await this.dbClient.getUser("1"), this.dbClient),
+                graphiql: true,
+            })
+        );
         const requestRouter = await tokenRequestRouter(this.dbClient);
         this.expressServer.use("/tokenResponse", tokenResponseRouter(this.dbClient));
         this.expressServer.use("/tokenRequest", requestRouter);
