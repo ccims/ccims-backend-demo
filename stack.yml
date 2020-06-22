@@ -10,7 +10,7 @@ services:
     volumes:
       - ./:/home/node/app
     ports:
-      - "8080"
+      - "8080:8080"
     command: "npm run start-docker"
     depends_on:
       - db
@@ -19,4 +19,4 @@ services:
       context: .
       dockerfile: database.dockerfile
     ports:
-      - "5432"
+      - "5433:5432"
