@@ -1,0 +1,2 @@
+insert into users (username, password, components, ims_login) values ('admin', 'admin', '{}', '{}');
+update issue_management_systems set data='{"endpoint":"https://api.github.com/graphql", "clientId":"[CLIENT_ID_OF_GIHUB_APP]", "clientSecret":"[CLIENT_SECRET_OF_GIHUB_APP]","redirectUri":"http://localhost:8080/tokenResponse/github"}' where id='1';
