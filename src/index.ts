@@ -16,6 +16,9 @@ const pgOptions: pg.ClientConfig = {
     password: config.postgres.password,
     database: config.postgres.database
 };
+if (config.postgres.server != null) {
+    pgOptions.host = config.postgres.server;
+}
 const client = DBClient.create(pgOptions);
 
 client.then(async client => {

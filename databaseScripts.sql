@@ -1,8 +1,8 @@
-DROP TABLE projects;
-DROP TABLE components;
-DROP TABLE issue_management_systems;
-DROP TABLE users;
-DROP TYPE ims_type;
+DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS components;
+DROP TABLE IF EXISTS issue_management_systems;
+DROP TABLE IF EXISTS users;
+DROP TYPE IF EXISTS ims_type;
 
 --\connect ccims
 
