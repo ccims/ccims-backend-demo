@@ -35,7 +35,7 @@ export class ComponentInterface extends DatabaseElement {
             if (res.rowCount !== 1) {
                 throw new Error("illegal number of components found");
             } else {
-                return new ComponentInterface(client, id, res.rows[0]["name"], res.rows[0]["host_component"], res.rows[0]["using_components"]);
+                return new ComponentInterface(client, id, res.rows[0]["name"], res.rows[0]["host_component"], new Set(res.rows[0]["using_components"]));
             }
         })
     }
