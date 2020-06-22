@@ -33,7 +33,7 @@ export class ComponentInterface extends DatabaseElement {
         const pg = client.client
         return pg.query("SELECT name, host_component, using_components FROM interfaces WHERE id=$1;", [id]).then(res => {
             if (res.rowCount !== 1) {
-                throw new Error("illegal number of components found");
+                throw new Error("illegal number of component interfaces found");
             } else {
                 return new ComponentInterface(client, id, res.rows[0]["name"], res.rows[0]["host_component"], new Set(res.rows[0]["using_components"]));
             }
