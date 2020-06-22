@@ -21,7 +21,7 @@ export class GitHubIMSInfo extends IMSInfo {
         this._redirectUri = dataParsed.redirectUri;
     }
 
-    public static async create(client: DBClient, endpoint: string): Promise<GitHubIMSInfo> {
+    public static async _create(client: DBClient, endpoint: string): Promise<GitHubIMSInfo> {
         const pg = client.client;
         return pg.query("INSERT INTO issue_management_systems (type, data) VALUES ($1, $2) RETURNING id;", [IMSType.GitHub, endpoint]).then(result => {
             return new GitHubIMSInfo(client, result.rows[0]["id"], endpoint);

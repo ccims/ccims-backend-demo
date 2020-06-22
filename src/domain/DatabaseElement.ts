@@ -11,12 +11,15 @@ export class DatabaseElement {
     private needsSave : boolean = false;
 
     protected constructor(client : DBClient, id : string) {
+        if (typeof id !== "string") {
+            throw new Error("fix your code!!! an id must be a string!!!!!");
+        }
         this.imsClient = client;
         this.client = client.client;
         this._id = id;
     }
 
-    public async saveToDB(): Promise<void> {
+    public async _saveToDB(): Promise<void> {
         if (this.needsSave) {
             this.needsSave = false;
             return this.save();

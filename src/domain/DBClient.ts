@@ -7,6 +7,7 @@ import { Component } from "./components/Component";
 import { IMSCredential } from "../adapter/IMSCredential";
 import { IMSData } from "../adapter/IMSData";
 import { ComponentInterface } from "./components/ComponentInterface";
+import { GitHubIMSInfo } from "../adapter/github/GitHubIMSInfo";
 
 export class DBClient {
     private readonly _client: Client;
@@ -69,10 +70,16 @@ export class DBClient {
         if (this.imsInfos.has(id)) {
             return this.imsInfos.get(id) as IMSInfo;
         } else {
-            const newInfo = await IMSInfoProvider.load(this, id);
+            const newInfo = await IMSInfoProvider._load(this, id);
             this.imsInfos.set(id, newInfo);
             return newInfo;
         }
+    }
+
+    public async createGitHubIMSInfo(endpoint: string): Promise<GitHubIMSInfo> {
+        const newIMSInfo = await GitHubIMSInfo._create(this, endpoint);
+        this.imsInfos.set(newIMSInfo.id, newIMSInfo);
+        return newIMSInfo;
     }
 
     public async getAllIMSInfo(): Promise<IMSInfo[]> {
@@ -136,11 +143,11 @@ export class DBClient {
     
 
     public async save(): Promise<void> {
-        await Promise.all(Array.from(this.users, ([id, user]) => user.saveToDB()));
-        await Promise.all(Array.from(this.projects, ([id, project]) => project.saveToDB()));
-        await Promise.all(Array.from(this.components, ([id, component]) => component.saveToDB()));
-        await Promise.all(Array.from(this.imsInfos, ([id, imsInfo]) => imsInfo.saveToDB()));
-        await Promise.all(Array.from(this.componentInterfaces, ([id, componentInterface]) => componentInterface.saveToDB()));
+        await Promise.all(Array.from(this.users, ([id, user]) => user._saveToDB()));
+        await Promise.all(Array.from(this.projects, ([id, project]) => project._saveToDB()));
+        await Promise.all(Array.from(this.components, ([id, component]) => component._saveToDB()));
+        await Promise.all(Array.from(this.imsInfos, ([id, imsInfo]) => imsInfo._saveToDB()));
+        await Promise.all(Array.from(this.componentInterfaces, ([id, componentInterface]) => componentInterface._saveToDB()));
     }
 
 }

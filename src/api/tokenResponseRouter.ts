@@ -48,7 +48,7 @@ export function tokenResponseRouter(dbClient: DBClient) {
                             const user = await dbClient.getUserByUsername((request.query["state"] as string).split("-")[1]);
                             if (user) {
                                 user.addIMSCredential(credentials);
-                                user.saveToDB();
+                                await dbClient.save();
                             }
                             console.log(returnedParams);
                         } else {
