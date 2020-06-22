@@ -88,7 +88,6 @@ export class RootApiResolver {
         const project = await Project.load(this.dbClient, BigInt(args.projectId));
         const component = await Component.load(this.dbClient, BigInt(args.componentId));
         project.addComponent(component);
-        component.addProject(project);
         project.saveToDB();
         component.saveToDB();
         return new ProjectResolver(project, this.dbClient);

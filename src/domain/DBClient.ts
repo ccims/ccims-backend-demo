@@ -7,6 +7,7 @@ import { Project } from "./components/Project";
 import { Component } from "./components/Component";
 import { IMSCredential } from "../adapter/IMSCredential";
 import { IMSData } from "../adapter/IMSData";
+import { ComponentInterface } from "./components/ComponentInterface";
 
 export class DBClient {
     private readonly _client: Client;
@@ -17,6 +18,7 @@ export class DBClient {
     private readonly imsInfos: Map<BigInt, IMSInfo>;
     private readonly projects: Map<BigInt, Project>;
     private readonly components: Map<BigInt, Component>;
+    private readonly componentInterfaces: Map<BigInt, ComponentInterface>;
 
     private constructor(client: Client) {
         this._client = client;
@@ -24,6 +26,7 @@ export class DBClient {
         this.imsInfos = new Map();
         this.projects = new Map();
         this.components = new Map();
+        this.componentInterfaces = new Map();
 
         this._defaultUser = new DummyUser(this);
         this.users.set(this._defaultUser.id, this._defaultUser);
@@ -118,6 +121,22 @@ export class DBClient {
         }
     }
 
+    public async createComponentInterface(name: string, hostComponent: Component): Promise<ComponentInterface> {
+        const newComponentInterface = await ComponentInterface.create(this, name, hostComponent);
+        this.componentInterfaces.set(newComponentInterface.id, newComponentInterface);
+        return newComponentInterface;
+    }
+
+    public async getComponentInterface(id: BigInt): Promise<ComponentInterface> {
+        if (this.componentInterfaces.has(id)) {
+            return this.componentInterfaces.get(id) as ComponentInterface;
+        } else {
+            const newComponentInterface = await ComponentInterface.load(this, id);
+            this.componentInterfaces.set(id, newComponentInterface);
+            return newComponentInterface;
+        }
+    }
+
     public get defaultUser(): User {
         return this._defaultUser;
     }
@@ -127,6 +146,7 @@ export class DBClient {
         await Promise.all(Array.from(this.projects, ([id, project]) => project.saveToDB()));
         await Promise.all(Array.from(this.components, ([id, component]) => component.saveToDB()));
         await Promise.all(Array.from(this.imsInfos, ([id, imsInfo]) => imsInfo.saveToDB()));
+        await Promise.all(Array.from(this.componentInterfaces, ([id, componentInterface]) => componentInterface.saveToDB()));
     }
 
 }

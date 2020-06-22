@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS projects;
 DROP TABLE IF EXISTS components;
 DROP TABLE IF EXISTS issue_management_systems;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS interfaces;
 DROP TYPE IF EXISTS ims_type;
 
 --\connect ccims
@@ -23,7 +24,16 @@ CREATE TABLE components (
     owner INTEGER NOT NULL,
     projects INTEGER[],
     ims INTEGER,
-    ims_data JSON
+    ims_data JSON,
+    interfaces INTEGER[],
+    consumed_interfaces INTEGER[]
+);
+
+CREATE TABLE interfaces (
+    id SERIAL PRIMARY KEY,
+    host_component INTEGER,
+    using_components INTEGER[],
+    name TEXT
 );
 
 CREATE TABLE issue_management_systems (
