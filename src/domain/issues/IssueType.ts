@@ -1,0 +1,5 @@
+export enum IssueType {
+    UNCLASSIFIED = "UNCLASSIFIED",
+    BUG = "BUG",
+    FEATURE_REQUEST = "FEATURE_REQUEST",
+}

@@ -5,12 +5,13 @@ import { IMSData } from "../IMSData";
 import { GraphQLClient } from "graphql-request";
 import { User } from "../../domain/users/User";
 import { Component } from "../../domain/components/Component";
-import { IssueRequest, CommentRequest, CreateIssueMutation, RepositoryIdRequest } from "./GitHubGraphqlTypes";
+import { IssueRequest, CommentRequest, CreateIssueMutation, RepositoryIdRequest, RemoveIssueMutation } from "./GitHubGraphqlTypes";
 import { DBClient } from "../../domain/DBClient";
 import { GitHubCredential } from "./GitHubCredential";
 import { GitHubImsData } from "./GitHubIMSData";
 import { GitHubIMSInfo } from "./GitHubIMSInfo";
 import { IMSType } from "../IMSType";
+import { IssueType } from "../../domain/issues/IssueType";
 
 export class GitHubAdapter implements IMSAdapter {
 
@@ -66,7 +67,7 @@ export class GitHubAdapter implements IMSAdapter {
         });
     }
 
-    async getIssues(user: User): Promise<Issue[]> {
+    async getIssue(user: User, id: string): Promise<Issue> {
         return (await this.getRequest(user)).request<IssueRequest>(`query {
             repository(name:"${this._imsData.repository}", owner:"${this._imsData.owner}") {
                 issues (first: 100) {
@@ -81,18 +82,25 @@ export class GitHubAdapter implements IMSAdapter {
                     }
                 }
             }
-        }`).then((response: IssueRequest): Issue[] => {
-            let issues: Issue[] = new Array();
-            response.repository.issues.nodes.forEach(async issue => {
-                const user = await this._dbClient.getUserByUsername(issue.author.login);
-                issues.push(new Issue(issue.id, this._component, user, new Date(issue.createdAt), issue.title, issue.body))
-            });
-            return issues;
+        }`).then(async (response: IssueRequest): Promise<Issue> => {
+            const issueData = response.node;
+            const findMetadataRegex = new RegExp("```ccims\n.*?\n```\n", "g");
+            const metadata = GitHubAdapter.toIssueMetadata(JSON.parse((findMetadataRegex.exec(issueData.body) || ["{}"])[0]));
+            const restBody = issueData.body.substr(findMetadataRegex.lastIndex);
+            const component = await Component.load(this._dbClient, metadata.componentId);
+            const user = await User.load(this._dbClient, metadata.creatorId);
+            return new Issue(issueData.id, component, user, new Date(issueData.createdAt), issueData.title, restBody, !issueData.closed, metadata.linkedIssues, metadata.type);
         });
     }
 
-    async createIssue(user: User, title: string, body: string): Promise<Issue> {
+    async createIssue(user: User, title: string, body: string, type: IssueType): Promise<Issue> {
         const imsInfo = await this._component.getIMSInfo();
+        const extraInfo = "```ccims\n" + JSON.stringify({
+            componentId: this._component.id,
+            creatorId: user.id,
+            linkedIssues: new Array<BigInt>()
+        }, null, 4) + "\n```\n";
+        const finishedBody = extraInfo + body;
         return (await this.getRequest(user)).request<CreateIssueMutation>(`mutation CreateIssue {
             createIssue(input: {
               repositoryId: "${this._imsData.repositoryId}", 
@@ -101,14 +109,25 @@ export class GitHubAdapter implements IMSAdapter {
               issue {
                 id
                 createdAt
+                closed
               }
             }
           }`).then((response: CreateIssueMutation): Issue => {
-            return new Issue(response.createIssue.issue.id, this._component, user, new Date(response.createIssue.issue.createdAt), title, body);
+            return new Issue(response.createIssue.issue.id, this._component, user, new Date(response.createIssue.issue.createdAt), title, body, !response.createIssue.issue.closed, [], type);
         });
     }
 
-
+    async removeIssue(user: User, issue: Issue): Promise<boolean> {
+        const imsInfo = await this._component.getIMSInfo();
+        return (await this.getRequest(user)).request<RemoveIssueMutation>(`mutation DeleteIssue {
+            deleteIssue(input:{
+              issueId:"${issue.id}"
+            }) {
+              clientMutationId
+            }
+          }
+          `).then((response: RemoveIssueMutation): boolean => true).catch((error): boolean => false);
+    }
 
     async getComments(issue: Issue, user: User): Promise<IssueComment[]> {
         return (await this.getRequest(user)).request<CommentRequest>(`query {
@@ -138,4 +157,49 @@ export class GitHubAdapter implements IMSAdapter {
         return typeof githubData.repository === "string" && typeof githubData.owner === "string";
     }
 
+    private static toIssueMetadata(data: IssueMetadata): IssueMetadata {
+        const newData: IssueMetadata = {
+            componentId: 0n,
+            creatorId: 0n,
+            linkedIssues: [],
+            type: IssueType.UNCLASSIFIED
+        }
+        if (typeof data.componentId === "string" || typeof data.componentId === "number") {
+            newData.componentId = BigInt(data.componentId);
+        } else if (typeof data.componentId == "bigint") {
+            newData.componentId = data.componentId;
+        } else {
+            throw new Error("The Issue metadata of the issue are incorrect");
+        }
+        if (typeof data.creatorId === "string" || typeof data.creatorId === "number") {
+            newData.creatorId = BigInt(data.creatorId);
+        } else if (typeof data.creatorId == "bigint") {
+            newData.creatorId = data.creatorId;
+        } else {
+            throw new Error("The Issue metadata of the issue are incorrect");
+        }
+        if (typeof data.linkedIssues !== "undefined" && data.linkedIssues instanceof Array) {
+            data.linkedIssues.forEach(issueId => {
+                if (typeof issueId === "string") {
+                    newData.linkedIssues.push(issueId);
+                } else {
+                    throw new Error("The Issue metadata of the issue are incorrect");
+                }
+            });
+        } else {
+            throw new Error("The Issue metadata of the issue are incorrect");
+        }
+        if (typeof IssueType[data.type] !== "undefined") {
+            newData.type = IssueType[data.type];
+        }
+        return newData;
+    }
+
+}
+
+interface IssueMetadata {
+    componentId: BigInt,
+    creatorId: BigInt,
+    linkedIssues: Array<string>,
+    type: IssueType
 }

@@ -1,17 +1,10 @@
 export interface IssueRequest {
-    repository: {
-        issues: {
-            nodes: Array<{
-                author: {
-                    login: string;
-                };
-                body: string;
-                closed: boolean;
-                title: string;
-                id: string;
-                createdAt: string;
-            }>
-        }
+    node: {
+        body: string;
+        closed: boolean;
+        title: string;
+        id: string;
+        createdAt: string;
     }
 }
 
@@ -20,7 +13,14 @@ export interface CreateIssueMutation {
         issue: {
             id: string
             createdAt: string;
+            closed: boolean;
         }
+    }
+}
+
+export interface RemoveIssueMutation {
+    deleteIssue: {
+        clientMutationId: string;
     }
 }
 

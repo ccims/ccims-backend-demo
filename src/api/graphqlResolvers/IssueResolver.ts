@@ -3,15 +3,19 @@ import { CommentResolver } from "./CommentResolver";
 import marked from "marked";
 import { DBClient } from "../../domain/DBClient";
 import { IssueRelationResolver } from "./IssueRelationResolver";
+import { IssueType } from "../../domain/issues/IssueType";
+import { User } from "../../domain/users/User";
 
 export class IssueResolver {
 
     private readonly issue: Issue;
     private readonly dbClient: DBClient;
+    private readonly user: User
 
-    public constructor(issue: Issue, dbClient: DBClient) {
+    public constructor(issue: Issue, user: User, dbClient: DBClient) {
         this.issue = issue;
         this.dbClient = dbClient;
+        this.user = user;
     }
 
     public id(): string {
@@ -30,26 +34,23 @@ export class IssueResolver {
         return marked(this.issue.body);
     }
 
-    public comments(): Array<CommentResolver> {
+    /*public comments(): Array<CommentResolver> {
         return this.issue.comments.map(comment => new CommentResolver(comment, this.dbClient));
-    }
+    }*/
 
     public creationDate(): string {
         return this.issue.creationDate.toString();
     }
 
     public opened(): boolean {
-        //TODO: Implement
-        return true;
+        return this.issue.open;
     }
 
-    public issueType(): null {
-        //TODO: Implement
-        return null;
+    public issueType(): IssueType {
+        return this.issue.type;
     }
 
-    public relatedIssues(): Array<IssueRelationResolver | null> {
-        //TODO: Implement
-        return [null];
+    public relatedIssues(): Array<IssueRelationResolver> {
+        return this.issue.linkedIssueIds.map(async id => new IssueResolver(await Issue.load(id, this.issue.component, this.user, this.dbClient), this.user, this.dbClient));
     }
 }

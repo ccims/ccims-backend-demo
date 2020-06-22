@@ -10,6 +10,7 @@ import { InterfaceResolver } from "./InterfaceResolver";
 import { Issue } from "../../domain/issues/Issue";
 import { Component } from "../../domain/components/Component";
 import { IMSDataFactory } from "../../adapter/IMSDataFactory";
+import { IssueType } from "../../domain/issues/IssueType";
 
 export class RootApiResolver {
 
@@ -43,7 +44,7 @@ export class RootApiResolver {
 
     async createIssue(args: CreateIssueArgs): Promise<IssueResolver> {
         const component = await Component.load(this.dbClient, BigInt(args.data.componentId));
-        return new IssueResolver(await Issue.create(component, this._user, args.data.title || "untiteled ccims issue", args.data.body || "", this.dbClient), this.dbClient);
+        return new IssueResolver(await Issue.create(component, this._user, args.data.title || "untiteled ccims issue", args.data.body || "", args.data.issueType || IssueType.UNCLASSIFIED, this.dbClient), this._user, this.dbClient);
     }
 
     updateIssue(args: UpdateIssueArgs): IssueResolver | null {
@@ -61,8 +62,8 @@ export class RootApiResolver {
         return false;
     }
 
-    removeIssue(args: RemoveIssueArgs): boolean {
-        // TODO: Implement
+    async removeIssue(args: RemoveIssueArgs): Promise<boolean> {
+        const issue = Issue.load(args.issueId, await Component.load(this.dbClient, BigInt(args.componentId)), this._user, this.dbClient)
         return false;
     }
 
@@ -149,6 +150,7 @@ interface IssueInput {
     body?: string
     opened?: boolean
     componentId?: string
+    issueType?: IssueType
 }
 interface UserInput {
     userName: string
@@ -197,7 +199,8 @@ interface AddRemoveIssueRelationArgs {
     toId: string
 }
 interface RemoveIssueArgs {
-    id: string
+    issueId: string
+    componentId: string
 }
 interface CreateProjectArgs {
     data: ProjectInput
