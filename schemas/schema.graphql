@@ -5,9 +5,9 @@ type Query {
 
 type Mutation {
     createIssue(data: IssueInput!): Issue
-    updateIssue(issueId: ID!, data: IssueInput!): Issue
-    addIssueRelation(fromId: ID!, toId: ID!): Boolean
-    removeIssueRelation(fromId: ID!, toId: ID!): Boolean
+    updateIssue(issueId: ID!, componentId: ID!, data: IssueInput!): Issue
+    addIssueRelation(data: AddIssueRelationInput): IssueRelation
+    removeIssueRelation(fromId: ID!, fromComponentId:ID!, toId: ID!): Boolean
     removeIssue(issueId: ID!, componentId: ID!): Boolean
 
     createProject(data: ProjectInput!): Project
@@ -44,8 +44,17 @@ type Issue implements Element {
 }
 
 type IssueRelation {
-    issue: Issue
+    sourceIssue: Issue
+    destIssue: Issue
     relationType: RelationType
+}
+
+input AddIssueRelationInput {
+    fromId: ID!, 
+    fromComponentId: ID!, 
+    toId: ID!, 
+    toComponentId: ID!,
+    type: RelationType
 }
 
 enum RelationType {

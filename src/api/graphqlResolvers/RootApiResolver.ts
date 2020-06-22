@@ -11,6 +11,8 @@ import { Issue } from "../../domain/issues/Issue";
 import { Component } from "../../domain/components/Component";
 import { IMSDataFactory } from "../../adapter/IMSDataFactory";
 import { IssueType } from "../../domain/issues/IssueType";
+import { IssueRelation, IssueRelationType } from "../../domain/issues/IssueRelation";
+import { IssueRelationResolver } from "./IssueRelationResolver";
 
 export class RootApiResolver {
 
@@ -47,19 +49,39 @@ export class RootApiResolver {
         return new IssueResolver(await Issue.create(component, this._user, args.data.title || "untiteled ccims issue", args.data.body || "", args.data.issueType || IssueType.UNCLASSIFIED, this.dbClient), this._user, this.dbClient);
     }
 
-    updateIssue(args: UpdateIssueArgs): IssueResolver | null {
-        // TODO: Implement
-        return null;
+    async updateIssue(args: UpdateIssueArgs): Promise<IssueResolver | null> {
+        const issue = await Issue.load(args.issueId, await Component.load(this.dbClient, BigInt(args.componentId)), this._user, this.dbClient);
+        if (args.data.body) {
+            issue.body = args.data.body;
+        }
+        if (args.data.title) {
+            issue.title = args.data.title;
+        }
+        if (args.data.componentId) {
+            throw new Error("The component id can't be changed");
+        }
+        if (args.data.issueType) {
+            issue.type = args.data.issueType;
+        }
+        if (typeof args.data.opened === "boolean") {
+            issue.open = args.data.opened;
+        }
+        issue.saveToIMS(this._user, this.dbClient);
+        return new IssueResolver(issue, this._user, this.dbClient);
     }
 
-    addIssueRelation(args: AddRemoveIssueRelationArgs): boolean {
-        // TODO: Implement
-        return false;
+    async addIssueRelation(args: AddIssueRelationArgs): Promise<IssueRelationResolver> {
+        const issue = await Issue.load(args.data.fromId, await Component.load(this.dbClient, BigInt(args.data.fromComponentId)), this._user, this.dbClient);
+        const retVal = new IssueRelationResolver(await issue.addIssueRelation(args.data.type || IssueRelationType.RELATED_TO, args.data.fromId, BigInt(args.data.fromComponentId), args.data.toId, BigInt(args.data.toComponentId), this.dbClient), this._user, this.dbClient);
+        issue.saveToIMS(this._user, this.dbClient);
+        return retVal;
     }
 
-    removeIssueRelation(args: AddRemoveIssueRelationArgs): boolean {
-        // TODO: Implement
-        return false;
+    async removeIssueRelation(args: RemoveIssueRelationArgs): Promise<boolean> {
+        const issue = await Issue.load(args.fromId, await Component.load(this.dbClient, BigInt(args.fromComponentId)), this._user, this.dbClient);
+        const retVal = issue.removeIssueRelation(args.fromId, BigInt(args.fromComponentId), args.toId);
+        issue.saveToIMS(this._user, this.dbClient);
+        return retVal;
     }
 
     async removeIssue(args: RemoveIssueArgs): Promise<boolean> {
@@ -177,6 +199,13 @@ interface ProjectInput {
 interface InterfaceInput {
     name: string
 }
+interface AddIssueRelationInput {
+    fromId: string,
+    fromComponentId: string,
+    toId: string,
+    toComponentId: string,
+    type?: IssueRelationType
+}
 
 interface GetUserArgs {
     username: string
@@ -191,11 +220,16 @@ interface CreateIssueArgs {
 }
 interface UpdateIssueArgs {
     issueId: string,
-    data: IssueInput
+    data: IssueInput,
+    componentId: string
 }
-interface AddRemoveIssueRelationArgs {
+interface RemoveIssueRelationArgs {
     fromId: string,
-    toId: string
+    toId: string,
+    fromComponentId: string
+}
+interface AddIssueRelationArgs {
+    data: AddIssueRelationInput
 }
 interface RemoveIssueArgs {
     issueId: string

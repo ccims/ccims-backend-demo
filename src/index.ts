@@ -17,12 +17,11 @@ const pgOptions: pg.ClientConfig = {
     database: config.postgres.database
 };
 if (config.postgres.server != null) {
-    pgOptions.host = config.postgres.server;
+    pgOptions.host = config.postgres.server || undefined;
 }
 const client = DBClient.create(pgOptions);
 
 client.then(async client => {
-
     /*const thisWillFail = client.getUser(3n).catch(e => console.error("This wil fail: ", e));
     console.log(thisWillFail);
     const testUser = await client.createUser(Math.random().toString().substring(10), "hello world");

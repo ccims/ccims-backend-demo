@@ -10,5 +10,7 @@ export interface IMSAdapter {
     getComments(issue: Issue, user: User): Promise<Array<IssueComment>>;
     createIssue(user: User, title: string, body: string, type: IssueType): Promise<Issue>;
     removeIssue(user: User, issue: Issue): Promise<boolean>;
-
+    updateIssue(user: User, issue: Issue): Promise<boolean>;
+    reopenIssue(user: User, issue: Issue): Promise<boolean>;
+    closeIssue(user: User, issue: Issue): Promise<boolean>;
 }
