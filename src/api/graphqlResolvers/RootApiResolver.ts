@@ -125,7 +125,7 @@ export class RootApiResolver {
         return false;
     }
 
-    async createComponent(args: CreateComponentArgs): Promise<ComponentResolver | null> {
+    async createComponent(args: CreateComponentArgs): Promise<ComponentResolver> {
         const owner = await this.dbClient.getUserByUsername(args.data.ownerUsername);
         const imsInfo = await this.dbClient.getIMSInfo(BigInt(args.data.imsId));
         const imsData = IMSDataFactory.toValidIMDData(args.data.imsData, imsInfo);
