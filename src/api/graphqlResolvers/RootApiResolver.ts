@@ -64,7 +64,7 @@ export class RootApiResolver {
 
     async removeIssue(args: RemoveIssueArgs): Promise<boolean> {
         const issue = Issue.load(args.issueId, await Component.load(this.dbClient, BigInt(args.componentId)), this._user, this.dbClient)
-        return false;
+        return (await issue).remove(this._user, this.dbClient);
     }
 
     async createProject(args: CreateProjectArgs): Promise<ProjectResolver> {

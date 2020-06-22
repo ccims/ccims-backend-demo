@@ -69,23 +69,25 @@ export class GitHubAdapter implements IMSAdapter {
 
     async getIssue(user: User, id: string): Promise<Issue> {
         return (await this.getRequest(user)).request<IssueRequest>(`query {
-            repository(name:"${this._imsData.repository}", owner:"${this._imsData.owner}") {
-                issues (first: 100) {
-                    nodes {
-                        author {
-                            login
-                        }
-                        body
-                        closed
-                        title
-                        createdAt
-                    }
+            node(id: "${id}") {
+                ... on Issue {
+                  id
+                  createdAt
+                  title
+                  body
+                  closed
                 }
-            }
+              }
         }`).then(async (response: IssueRequest): Promise<Issue> => {
             const issueData = response.node;
-            const findMetadataRegex = new RegExp("```ccims\n.*?\n```\n", "g");
-            const metadata = GitHubAdapter.toIssueMetadata(JSON.parse((findMetadataRegex.exec(issueData.body) || ["{}"])[0]));
+            const findMetadataRegex = new RegExp(/```ccims\r?\n((.|\r?\n)*?)\r?\n```\r?\n/gm, "gm");
+            const matchedPart = findMetadataRegex.exec(issueData.body);
+            const metadata = GitHubAdapter.toIssueMetadata(JSON.parse((matchedPart || ["{}"])[1], (key: string, value: any): any => {
+                if (typeof value === "string" && value.startsWith("id:") && value.endsWith("n")) {
+                    return BigInt(value.substr(3, value.length - 4));
+                }
+                return value;
+            }));
             const restBody = issueData.body.substr(findMetadataRegex.lastIndex);
             const component = await Component.load(this._dbClient, metadata.componentId);
             const user = await User.load(this._dbClient, metadata.creatorId);
@@ -98,14 +100,19 @@ export class GitHubAdapter implements IMSAdapter {
         const extraInfo = "```ccims\n" + JSON.stringify({
             componentId: this._component.id,
             creatorId: user.id,
-            linkedIssues: new Array<BigInt>()
-        }, null, 4) + "\n```\n";
+            linkedIssues: new Array<string>()
+        }, (key: string, value: any): any => {
+            if (typeof value === "bigint") {
+                return "id:" + value.toString() + "n";
+            }
+            return value;
+        }, 4) + "\n```\n";
         const finishedBody = extraInfo + body;
         return (await this.getRequest(user)).request<CreateIssueMutation>(`mutation CreateIssue {
             createIssue(input: {
               repositoryId: "${this._imsData.repositoryId}", 
               title: "${title}", 
-              body: "${body}"}) {
+              body: "${finishedBody.replace(/"/g, '\\"')}"}) {
               issue {
                 id
                 createdAt
@@ -126,7 +133,7 @@ export class GitHubAdapter implements IMSAdapter {
               clientMutationId
             }
           }
-          `).then((response: RemoveIssueMutation): boolean => true).catch((error): boolean => false);
+          `).then((_response: RemoveIssueMutation): boolean => true);
     }
 
     async getComments(issue: Issue, user: User): Promise<IssueComment[]> {
