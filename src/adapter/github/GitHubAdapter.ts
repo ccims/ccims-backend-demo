@@ -209,7 +209,7 @@ export class GitHubAdapter implements IMSAdapter {
             type: type
         };
         const extraInfo = "```ccims\n" + JSON.stringify(metadata, (key: string, value: any): any => {
-            if (typeof value === "bigint") {
+            if (typeof value === "string") {
                 return "id:" + value.toString() + "n";
             }
             return value;
@@ -222,7 +222,7 @@ export class GitHubAdapter implements IMSAdapter {
         const matchedPart = findMetadataRegex.exec(body);
         const metadata = GitHubAdapter.toIssueMetadata(JSON.parse((matchedPart || ["{}"])[1], (key: string, value: any): any => {
             if (typeof value === "string" && value.startsWith("id:") && value.endsWith("n")) {
-                return BigInt(value.substr(3, value.length - 4));
+                return value.substr(3, value.length - 4);
             }
             return value;
         }));
@@ -243,14 +243,14 @@ export class GitHubAdapter implements IMSAdapter {
         }
         if (typeof data.componentId === "string" || typeof data.componentId === "number") {
             newData.componentId = data.componentId;
-        } else if (typeof data.componentId == "bigint") {
+        } else if (typeof data.componentId == "string") {
             newData.componentId = data.componentId;
         } else {
             throw new Error("The Issue metadata of the issue are incorrect");
         }
         if (typeof data.creatorId === "string" || typeof data.creatorId === "number") {
             newData.creatorId = data.creatorId;
-        } else if (typeof data.creatorId == "bigint") {
+        } else if (typeof data.creatorId == "string") {
             newData.creatorId = data.creatorId;
         } else {
             throw new Error("The Issue metadata of the issue are incorrect");
@@ -258,7 +258,7 @@ export class GitHubAdapter implements IMSAdapter {
         if (typeof data.linkedIssues !== "undefined" && data.linkedIssues instanceof Array) {
             data.linkedIssues.forEach((relation: Object) => {
                 const relationData = relation as { _sourceIssue: Object, _destIssue: Object, _sourceComponent: Object, _destComponent: Object, _relationType: Object };
-                if (typeof relation === "object" && typeof relationData._sourceIssue === "string" && typeof relationData._destIssue === "string" && typeof relationData._sourceComponent === "string" && typeof relationData._destComponent === "bigint" && typeof relationData._relationType === "string") {
+                if (typeof relation === "object" && typeof relationData._sourceIssue === "string" && typeof relationData._destIssue === "string" && typeof relationData._sourceComponent === "string" && typeof relationData._destComponent === "string" && typeof relationData._relationType === "string") {
                     newData.linkedIssues.push(new IssueRelation(relationData._relationType as IssueRelationType, relationData._sourceIssue, relationData._sourceComponent, relationData._destIssue, relationData._sourceComponent));
                 } else {
                     throw new Error("The Issue metadata of the issue are incorrect");
