@@ -31,7 +31,7 @@ export class RootApiResolver {
     }
 
     async component(args: GetElementArgs): Promise<ComponentResolver> {
-        return new ComponentResolver(await this.dbClient.getComponent(args.id), this.dbClient);
+        return new ComponentResolver(await this.dbClient.getComponent(args.id), this._user, this.dbClient);
     }
 
     async ims(args: GetElementArgs): Promise<IMSResolver> {
@@ -40,7 +40,7 @@ export class RootApiResolver {
     }
 
     async interface(args: GetElementArgs): Promise<InterfaceResolver> {
-        return new InterfaceResolver(await this.dbClient.getComponentInterface(args.id), this.dbClient);
+        return new InterfaceResolver(await this.dbClient.getComponentInterface(args.id), this._user, this.dbClient);
     }
 
     async issue(args: GetIssueArgs): Promise<IssueResolver> {
@@ -50,7 +50,7 @@ export class RootApiResolver {
     }
 
     async project(args: GetElementArgs): Promise<ProjectResolver> {
-        return new ProjectResolver(await this.dbClient.getProject(args.id), this.dbClient);
+        return new ProjectResolver(await this.dbClient.getProject(args.id), this._user, this.dbClient);
     }
 
     public async user(args: GetElementArgs): Promise<UserResolver> {
@@ -68,7 +68,7 @@ export class RootApiResolver {
     }
 
     async projects(): Promise<Array<ProjectResolver>> {
-        return (await this.dbClient.getAllProjects()).map(project => new ProjectResolver(project, this.dbClient));
+        return (await this.dbClient.getAllProjects()).map(project => new ProjectResolver(project, this._user, this.dbClient));
     }
 
     //###################Mutations
@@ -125,7 +125,7 @@ export class RootApiResolver {
         const user = await this.dbClient.getUserByUsername(args.data.ownerUsername);
         const project = await this.dbClient.createProject(args.data.name, args.data.description || "", user);
         await this.dbClient.save();
-        return new ProjectResolver(project, this.dbClient);
+        return new ProjectResolver(project, this._user, this.dbClient);
     }
 
     async modifyProject(args: ModifyProjectArgs): Promise<ProjectResolver> {
@@ -135,7 +135,7 @@ export class RootApiResolver {
         }
         project.name = args.data.name;
         await this.dbClient.save();
-        return new ProjectResolver(project, this.dbClient);
+        return new ProjectResolver(project, this._user, this.dbClient);
     }
 
     async addComponentToProject(args: AddComponentToProjectArgs): Promise<ProjectResolver> {
@@ -143,7 +143,7 @@ export class RootApiResolver {
         const component = await this.dbClient.getComponent(args.componentId);
         project.addComponent(component);
         await this.dbClient.save();
-        return new ProjectResolver(project, this.dbClient);
+        return new ProjectResolver(project, this._user, this.dbClient);
     }
 
     removeComponentFromProject(args: RemoveComponentFromProjectArgs): ProjectResolver | null {
@@ -162,7 +162,7 @@ export class RootApiResolver {
         const imsData = IMSDataFactory.toValidIMDData(args.data.imsData, imsInfo);
         const component = await this.dbClient.createComponent(args.data.name, args.data.description || "", new Set<Project>(), imsInfo, owner, imsData);
         await this.dbClient.save();
-        return new ComponentResolver(component, this.dbClient);
+        return new ComponentResolver(component, this._user, this.dbClient);
     }
 
     async addUsedInterface(args: AddRemoveProvidedUsedInterfaceArgs): Promise<ComponentResolver> {
@@ -170,7 +170,7 @@ export class RootApiResolver {
         const usingComponent = await this.dbClient.getComponent(args.componentId);
         usingComponent.addConsumedComponentInterface(componentInterface);
         await this.dbClient.save();
-        return new ComponentResolver(usingComponent, this.dbClient);
+        return new ComponentResolver(usingComponent, this._user, this.dbClient);
     }
 
     async removeUsedInterface(args: AddRemoveProvidedUsedInterfaceArgs): Promise<ComponentResolver> {
@@ -178,7 +178,7 @@ export class RootApiResolver {
         const usingComponent = await this.dbClient.getComponent(args.componentId);
         usingComponent.removeConsumedComponentInterface(componentInterface);
         await this.dbClient.save();
-        return new ComponentResolver(usingComponent, this.dbClient);
+        return new ComponentResolver(usingComponent, this._user, this.dbClient);
     }
 
     removeComponent(args: RemoveComponentArgs): boolean {
@@ -190,7 +190,7 @@ export class RootApiResolver {
         const component = await this.dbClient.getComponent(args.data.hostComponentId)
         const componentInterface = await this.dbClient.createComponentInterface(args.data.name, component);
         await this.dbClient.save();
-        return new InterfaceResolver(componentInterface, this.dbClient);
+        return new InterfaceResolver(componentInterface, this._user, this.dbClient);
     }
 
     removeInterface(args: RemoveInterfaceArgs): boolean {

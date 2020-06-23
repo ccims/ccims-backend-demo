@@ -13,4 +13,5 @@ export interface IMSAdapter {
     updateIssue(user: User, issue: Issue): Promise<boolean>;
     reopenIssue(user: User, issue: Issue): Promise<boolean>;
     closeIssue(user: User, issue: Issue): Promise<boolean>;
+    getAllIssues(user: User): Promise<Issue[]>;
 }

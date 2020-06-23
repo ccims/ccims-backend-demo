@@ -8,6 +8,20 @@ export interface IssueRequest {
     }
 }
 
+export interface AllIssueRequest {
+    node: {
+        issues: {
+            nodes: Array<{
+                body: string;
+                closed: boolean;
+                title: string;
+                id: string;
+                createdAt: string;
+            }>
+        }
+    }
+}
+
 export interface CreateIssueMutation {
     createIssue: {
         issue: {

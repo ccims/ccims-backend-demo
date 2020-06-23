@@ -5,7 +5,7 @@ import { IMSData } from "../IMSData";
 import { GraphQLClient } from "graphql-request";
 import { User } from "../../domain/users/User";
 import { Component } from "../../domain/components/Component";
-import { IssueRequest, CommentRequest, CreateIssueMutation, RepositoryIdRequest, RemoveIssueMutation, ModifyIssueMutation, ReopenIssueMutation, CloseIssueMutation } from "./GitHubGraphqlTypes";
+import { IssueRequest, CommentRequest, CreateIssueMutation, RepositoryIdRequest, RemoveIssueMutation, ModifyIssueMutation, ReopenIssueMutation, CloseIssueMutation, AllIssueRequest } from "./GitHubGraphqlTypes";
 import { DBClient } from "../../domain/DBClient";
 import { GitHubCredential } from "./GitHubCredential";
 import { GitHubImsData } from "./GitHubIMSData";
@@ -80,10 +80,10 @@ export class GitHubAdapter implements IMSAdapter {
                 }
               }
         }`).then(async (response: IssueRequest): Promise<Issue> => {
-            const metaParsed = this.parseMetadataBody(response.node.body);
+            const metaParsed = this.parseMetadataBody(response.node.body, user);
             const component = await this._dbClient.getComponent(metaParsed.metadata.componentId);
-            const user = await this._dbClient.getUser(metaParsed.metadata.creatorId);
-            return new Issue(response.node.id, component, user, new Date(response.node.createdAt), response.node.title, metaParsed.bodyText, !response.node.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type);
+            const creatorUser = await this._dbClient.getUser(metaParsed.metadata.creatorId);
+            return new Issue(response.node.id, component, creatorUser, new Date(response.node.createdAt), response.node.title, metaParsed.bodyText, !response.node.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type);
         });
     }
 
@@ -186,11 +186,36 @@ export class GitHubAdapter implements IMSAdapter {
         }`).then((response: CommentRequest): IssueComment[] => {
             let comments: IssueComment[] = new Array();
             response.node.comments.nodes.forEach(async comment => {
-                const user = await this._dbClient.getUserByUsername(comment.author.login);
-                comments.push(new IssueComment(user, comment.body, new Date(comment.createdAt)));
+                const creatorUser = await this._dbClient.getUserByUsername(comment.author.login);
+                comments.push(new IssueComment(creatorUser, comment.body, new Date(comment.createdAt)));
             });
             return comments;
         });
+    }
+
+    public async getAllIssues(user: User): Promise<Issue[]> {
+        return (await this.getRequest(user)).request<AllIssueRequest>(`query getAllIssues{
+            node(id: "${this._imsData.repositoryId}") {
+              ... on Repository {
+                issues(first: 100) {
+                  nodes {
+                    id
+                    createdAt
+                    title
+                    body
+                    closed
+                  }
+                }
+              }
+            }
+          }`).then(async (response: AllIssueRequest): Promise<Issue[]> => {
+            return Promise.all(response.node.issues.nodes.map(async (issue): Promise<Issue> => {
+                const metaParsed = this.parseMetadataBody(issue.body, user);
+                const component = await this._dbClient.getComponent(metaParsed.metadata.componentId);
+                const creatorUser = await this._dbClient.getUser(metaParsed.metadata.creatorId);
+                return new Issue(issue.id, component, creatorUser, new Date(issue.createdAt), issue.title, metaParsed.bodyText, !issue.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type);
+            }));
+        }).catch(err => { console.log("Error in issue loading: ", err); throw new Error(err); });
     }
 
     private createMetadataBodyByIssue(user: User, issue: Issue): string {
@@ -212,11 +237,37 @@ export class GitHubAdapter implements IMSAdapter {
         return (extraInfo + bodyText).replace(/"/g, '\\"');
     }
 
-    private parseMetadataBody(body: string): { bodyText: string, metadata: IssueMetadata } {
-        const findMetadataRegex = new RegExp(/```ccims\r?\n((.|\r?\n)*?)\r?\n```\r?\n/gm, "gm");
-        const matchedPart = findMetadataRegex.exec(body);
-        const metadata = GitHubAdapter.toIssueMetadata(JSON.parse((matchedPart || ["{}"])[1]));
-        return { bodyText: body.substr(findMetadataRegex.lastIndex), metadata: metadata };
+    private parseMetadataBody(body: string, user: User): { bodyText: string, metadata: IssueMetadata } {
+        let actualBody = body;
+        try {
+            const findMetadataRegex = new RegExp(/```ccims\r?\n((.|\r?\n)*?)\r?\n```\r?\n/gm, "gm");
+            const matchedPart = findMetadataRegex.exec(actualBody);
+            if (!matchedPart || matchedPart.length < 2) {
+                return { bodyText: actualBody, metadata: this.generateIssueStubMetadata(user) };
+            }
+            actualBody = body.substr(findMetadataRegex.lastIndex);
+            const parsedMetadataObj = JSON.parse(matchedPart[1]);
+            if (!parsedMetadataObj) {
+                return { bodyText: actualBody, metadata: this.generateIssueStubMetadata(user) };
+            }
+            const metadata = GitHubAdapter.toIssueMetadata(parsedMetadataObj);
+            if (!metadata) {
+                return { bodyText: actualBody, metadata: this.generateIssueStubMetadata(user) };
+            } else {
+                return { bodyText: actualBody, metadata: metadata };
+            }
+        } catch (e) {
+            return { bodyText: actualBody, metadata: this.generateIssueStubMetadata(user) };
+        }
+    }
+
+    private generateIssueStubMetadata(user: User): IssueMetadata {
+        return {
+            componentId: this._component.id,
+            creatorId: user.id,
+            linkedIssues: [],
+            type: IssueType.UNCLASSIFIED
+        };
     }
 
     private static isGithubImsData(imsData: IMSData) {
@@ -224,7 +275,7 @@ export class GitHubAdapter implements IMSAdapter {
         return typeof githubData.repository === "string" && typeof githubData.owner === "string";
     }
 
-    private static toIssueMetadata(data: IssueMetadata): IssueMetadata {
+    private static toIssueMetadata(data: IssueMetadata): IssueMetadata | null {
         const newData: IssueMetadata = {
             componentId: "0",
             creatorId: "0",
@@ -234,26 +285,24 @@ export class GitHubAdapter implements IMSAdapter {
         if (typeof data.componentId === "string") {
             newData.componentId = data.componentId;
         } else {
-            throw new Error("The Issue metadata of the issue are incorrect");
+            return null;
         }
         if (typeof data.creatorId === "string") {
             newData.creatorId = data.creatorId;
         } else {
-            throw new Error("The Issue metadata of the issue are incorrect");
+            return null;
         }
         if (typeof data.linkedIssues !== "undefined" && data.linkedIssues instanceof Array) {
             data.linkedIssues.forEach((relation: Object) => {
                 const relationData = relation as { _sourceIssue: Object, _destIssue: Object, _sourceComponent: Object, _destComponent: Object, _relationType: Object };
                 if (typeof relation === "object" && typeof relationData._sourceIssue === "string" && typeof relationData._destIssue === "string" && typeof relationData._sourceComponent === "string" && typeof relationData._destComponent === "string" && typeof relationData._relationType === "string") {
                     newData.linkedIssues.push(new IssueRelation(relationData._relationType as IssueRelationType, relationData._sourceIssue, relationData._sourceComponent, relationData._destIssue, relationData._sourceComponent));
-                } else {
-                    throw new Error("The Issue metadata of the issue are incorrect");
                 }
             });
         } else {
-            throw new Error("The Issue metadata of the issue are incorrect");
+            return null;
         }
-        if (typeof IssueType[data.type] !== "undefined") {
+        if (typeof data.type !== "undefined" && typeof IssueType[data.type] !== "undefined") {
             newData.type = IssueType[data.type];
         }
         return newData;
