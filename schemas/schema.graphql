@@ -111,6 +111,12 @@ type Component implements Element {
     ims: IMS
     interfaces: [Interface]
     usedInterfaces: [Interface]
+    imsData: ImsData
+}
+
+type ImsData {
+    repository: String
+    owner: String
 }
 
 type Interface implements Element {
@@ -129,11 +135,11 @@ input ComponentInput {
     name: String!
     description: String
     imsId: ID!
-    imsData: ImsData
+    imsData: ImsDataInput
     ownerUsername: String!
 }
 
-input ImsData {
+input ImsDataInput {
     repository: String!
     owner: String!
 }

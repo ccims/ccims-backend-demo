@@ -4,6 +4,7 @@ import { ProjectResolver } from "./ProjectResolver";
 import { DBClient } from "../../domain/DBClient";
 import { InterfaceResolver } from "./InterfaceResolver";
 import { IMSResolver } from "./IMSResolver";
+import { IMSData } from "../../adapter/IMSData";
 
 export class ComponentResolver {
 
@@ -25,6 +26,10 @@ export class ComponentResolver {
 
     public description(): string {
         return this.component.description;
+    }
+
+    public imsData(): IMSData {
+        return this.component.imsData;
     }
 
     public async ims(): Promise<IMSResolver> {
