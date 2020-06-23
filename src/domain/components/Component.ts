@@ -26,7 +26,7 @@ export class Component extends DatabaseElement {
     private consumedInterfaceIDs: Set<string>
 
     private constructor(client: DBClient, id: string, name: string, description: string, projectIDs: Set<string>, imsID: string,
-         ownerID: string, imsData: IMSData, interfaceIDs: Set<string>, consumedInterfaceIDs: Set<string>) {
+        ownerID: string, imsData: IMSData, interfaceIDs: Set<string>, consumedInterfaceIDs: Set<string>) {
         super(client, id);
         this._name = name;
         this._description = description;

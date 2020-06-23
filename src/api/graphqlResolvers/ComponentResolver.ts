@@ -27,9 +27,8 @@ export class ComponentResolver {
         return this.component.description;
     }
 
-    public ims(): IMSResolver | null {
-        //TODO: Implement
-        return null;
+    public async ims(): Promise<IMSResolver> {
+        return new IMSResolver(await this.component.getIMSInfo(), this.dbClient);
     }
 
     public async interfaces(): Promise<Array<InterfaceResolver | null>> {
