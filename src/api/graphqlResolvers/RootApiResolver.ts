@@ -14,6 +14,11 @@ import { IssueType } from "../../domain/issues/IssueType";
 import { IssueRelation, IssueRelationType } from "../../domain/issues/IssueRelation";
 import { IssueRelationResolver } from "./IssueRelationResolver";
 import { ComponentInterface } from "../../domain/components/ComponentInterface";
+import { IMSAdapter } from "../../adapter/IMSAdapter";
+import { IMSResolver, GitHubIMSResolver } from "./IMSResolver";
+import { IMSType } from "../../adapter/IMSType";
+import { GitHubIMSInfo } from "../../adapter/github/GitHubIMSInfo";
+import { IMSInfo } from "../../adapter/IMSInfo";
 
 export class RootApiResolver {
 
@@ -25,17 +30,44 @@ export class RootApiResolver {
         this._user = user;
     }
 
-    public async user(getUserArgs: GetUserArgs): Promise<UserResolver | null> {
+    async component(args: GetElementArgs): Promise<ComponentResolver> {
+        return new ComponentResolver(await this.dbClient.getComponent(args.id), this.dbClient);
+    }
+
+    async ims(args: GetElementArgs): Promise<IMSResolver> {
+        const imsInfo = await this.dbClient.getIMSInfo(args.id);
+        switch (imsInfo.type) {
+            case IMSType.GitHub:
+                return new GitHubIMSResolver(imsInfo as GitHubIMSInfo, this.dbClient);
+        }
+        return new IMSResolver(imsInfo, this.dbClient);
+    }
+
+    async interface(args: GetElementArgs): Promise<InterfaceResolver> {
+        return new InterfaceResolver(await this.dbClient.getComponentInterface(args.id), this.dbClient);
+    }
+
+    async issue(args: GetIssueArgs): Promise<IssueResolver> {
+        const component = await this.dbClient.getComponent(args.componentId);
+        const issue = await Issue.load(args.issueId, component, this._user, this.dbClient);
+        return new IssueResolver(issue, this._user, this.dbClient);
+    }
+
+    async project(args: GetElementArgs): Promise<ProjectResolver> {
+        return new ProjectResolver(await this.dbClient.getProject(args.id), this.dbClient);
+    }
+
+    public async user(args: GetElementArgs): Promise<UserResolver> {
+        return new UserResolver(await this.dbClient.getUser(args.id), this.dbClient);
+    }
+
+    public async userByUsername(getUserArgs: GetUserArgs): Promise<UserResolver | null> {
         if (getUserArgs.username) {
             const user = await this.dbClient.getUserByUsername(getUserArgs.username);
             if (user) {
                 return new UserResolver(user, this.dbClient);
             }
         }
-        return null;
-    }
-
-    issue(getIssueArgs: GetIssueArgs): IssueResolver | null {
         return null;
     }
 
@@ -194,9 +226,6 @@ interface ImsDataInput {
     repository?: string,
     owner?: string
 }
-enum ImsType {
-    GitHub
-}
 interface ProjectInput {
     name: string
     description?: string
@@ -218,8 +247,13 @@ interface GetUserArgs {
     username: string
 }
 
+interface GetElementArgs {
+    id: string
+}
+
 interface GetIssueArgs {
     issueId: string
+    componentId: string
 }
 
 interface CreateIssueArgs {

@@ -1,5 +1,11 @@
 type Query {
-    issue(id: ID!): Issue
+    component(id: ID!): Component
+    ims(id: ID!): IMS
+    interface(id: ID!): Interface
+    issue(issueId: ID!, componentId: ID!): Issue
+    project(id: ID!): Project
+    user(id: ID!): User
+    userByUsername(username: String!): User
     projects: [Project]
 }
 
@@ -30,7 +36,7 @@ interface Element {
     id: ID!
 }
 
-type Issue implements Element {
+type Issue {
     id: ID!
     title: String
     body: String
@@ -132,9 +138,16 @@ input ImsData {
     owner: String!
 }
 
-type IMS {
+interface IMS {
     id: ID!
     type: ImsType
+}
+
+type GitHubIMS implements IMS {
+    id: ID!
+    type: ImsType
+    endpoint: String
+    redirectURI: String
 }
 
 enum ImsType {
