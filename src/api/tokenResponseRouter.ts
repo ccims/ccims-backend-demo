@@ -6,16 +6,14 @@ import { IMSType } from "../adapter/IMSType";
 import { GitHubCredential } from "../adapter/github/GitHubCredential";
 import { User } from "../domain/users/User";
 import { Cipher } from "crypto";
+import { resolve } from "path";
 
-
-//TODO: Save and check user data and "state"  security
 export function tokenResponseRouter(dbClient: DBClient) {
     const resRouter = Router();
 
     resRouter.use("/github", (request, response, next) => {
         console.log("Token response from github: ", request.query["code"]);
         response.send("Token will be added");
-        next();
         if (request.query["code"] !== undefined) {
             const code: string = request.query["code"] as string;
             (async () => {
@@ -45,18 +43,32 @@ export function tokenResponseRouter(dbClient: DBClient) {
                             const accessTokenStart = returnedParams.indexOf("access_token=") + 13;
                             const accessToken = returnedParams.substr(accessTokenStart, returnedParams.indexOf("&", accessTokenStart) - accessTokenStart);
                             const credentials = new GitHubCredential(githubInfo, accessToken);
-                            const user = await dbClient.getUserByUsername((request.query["state"] as string).split("-")[1]);
-                            if (user) {
+                            const user = dbClient.getUserByUsername((request.query["state"] as string).split("-")[1]).then(async user => {
+                                user.removeIMSCredential(githubInfo);
                                 user.addIMSCredential(credentials);
                                 await dbClient.save();
-                            }
-                            console.log(returnedParams);
+                                console.log(returnedParams);
+                                response.status(200).send("New token added succesfully");
+                            }).catch(err => {
+                                response.status(403).send("No request for an api token was ever sent by this user");
+                            });
                         } else {
                             console.error("Github returned an error: ", await queryResponse.text());
+                            response.status(502).send("Error fetching the api token from github. Response code: " + queryResponse.status);
                         }
+                    }).catch(err => {
+                        response.status(502).send("Error fetching the api token from github");
                     });
                 }
-            })();
+            })().then(() => {
+                next();
+            }).catch(err => {
+                response.status(500).send("The adding of the api token was unsuccessfull");
+                next();
+            });
+        } else {
+            response.status(400).send("Not a valid github authorization response");
+            next();
         }
     });
     return resRouter;
