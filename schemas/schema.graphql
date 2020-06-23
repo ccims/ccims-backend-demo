@@ -149,6 +149,11 @@ interface IMS {
     type: ImsType
 }
 
+type UnknownIMS implements IMS {
+    id: ID!
+    type: ImsType
+}
+
 type GitHubIMS implements IMS {
     id: ID!
     type: ImsType

@@ -6,10 +6,18 @@ import { GitHubIMSInfo } from "../../adapter/github/GitHubIMSInfo";
 
 export class IMSResolver {
 
+    public static getIMSResolver(imsInfo: IMSInfo, dbClient: DBClient): IMSResolver {
+        switch (imsInfo.type) {
+            case IMSType.GitHub:
+                return new GitHubIMSResolver(imsInfo as GitHubIMSInfo, dbClient);
+        }
+        return new IMSResolver(imsInfo, dbClient);
+    }
+
     protected readonly imsInfo: IMSInfo;
     private readonly dbClient: DBClient;
 
-    constructor(imsInfo: IMSInfo, dbClient: DBClient) {
+    protected constructor(imsInfo: IMSInfo, dbClient: DBClient) {
         this.imsInfo = imsInfo;
         this.dbClient = dbClient;
     }
@@ -23,11 +31,11 @@ export class IMSResolver {
     }
 
     get __typename(): string {
-        return "IMS";
+        return "UnknownIMS";
     }
 }
 
-export class GitHubIMSResolver extends IMSResolver {
+class GitHubIMSResolver extends IMSResolver {
 
     constructor(imsInfo: GitHubIMSInfo, dbClient: DBClient) {
         super(imsInfo, dbClient);

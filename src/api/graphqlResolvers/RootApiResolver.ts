@@ -15,7 +15,7 @@ import { IssueRelation, IssueRelationType } from "../../domain/issues/IssueRelat
 import { IssueRelationResolver } from "./IssueRelationResolver";
 import { ComponentInterface } from "../../domain/components/ComponentInterface";
 import { IMSAdapter } from "../../adapter/IMSAdapter";
-import { IMSResolver, GitHubIMSResolver } from "./IMSResolver";
+import { IMSResolver } from "./IMSResolver";
 import { IMSType } from "../../adapter/IMSType";
 import { GitHubIMSInfo } from "../../adapter/github/GitHubIMSInfo";
 import { IMSInfo } from "../../adapter/IMSInfo";
@@ -36,11 +36,7 @@ export class RootApiResolver {
 
     async ims(args: GetElementArgs): Promise<IMSResolver> {
         const imsInfo = await this.dbClient.getIMSInfo(args.id);
-        switch (imsInfo.type) {
-            case IMSType.GitHub:
-                return new GitHubIMSResolver(imsInfo as GitHubIMSInfo, this.dbClient);
-        }
-        return new IMSResolver(imsInfo, this.dbClient);
+        return IMSResolver.getIMSResolver(imsInfo, this.dbClient);
     }
 
     async interface(args: GetElementArgs): Promise<InterfaceResolver> {

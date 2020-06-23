@@ -33,7 +33,7 @@ export class ComponentResolver {
     }
 
     public async ims(): Promise<IMSResolver> {
-        return new IMSResolver(await this.component.getIMSInfo(), this.dbClient);
+        return IMSResolver.getIMSResolver(await this.component.getIMSInfo(), this.dbClient);
     }
 
     public async interfaces(): Promise<Array<InterfaceResolver | null>> {
