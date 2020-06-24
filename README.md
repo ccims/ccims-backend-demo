@@ -11,6 +11,8 @@ The final system will be completly rewritten
 # Usage
 ## With Docker
 
+Before starting the docker containers first run `npm install` in this folder!
+
 ```bash
 # for a clean build run this before docker compose:
 rm tsconfig.tsbuildinfo
