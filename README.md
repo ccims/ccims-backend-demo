@@ -12,6 +12,9 @@ The final system will be completly rewritten
 ## With Docker
 
 ```bash
+# for a clean build run this before docker compose:
+rm tsconfig.tsbuildinfo
+# start the containers
 docker-compose -f stack.yml up
 ```
 
@@ -25,6 +28,13 @@ docker-compose -f stack.yml up
     "database": "CCIMS",
     "server": "db"
 }
+```
+
+Access the db with psql:
+
+```bash
+psql --username demo-user --dbname CCIMS --host localhost --port 5433
+# password is 'demo-password'
 ```
 
 
