@@ -66,10 +66,15 @@ All commands below should be executed in the root directory of this repository
 1. Check `Identifying and authorizing users -> Request user authorization (OAuth) during installation`
 1. Set `Identifying and authorizing users -> User authorization callback URL` to `http://localhost:8080/tokenResponse/github` (Or the address where the ccims backend is reachable)
 1. Set `Repository permissions -> Issues` to `Read & Write`
+1. Click `Install app` or access the "public link" of your GitHub App
+1. Chose on which account/organization you want to grant the app access
+1. Select the repository/repositories which the app should be able to access
+1. Press `Authorize & Request`. The app has now access to those repositories. (The link you are redirected to is irrelevant; you will request a user-specific token in the next steps)
 1. Enter the client id and client secret in the file `defaultUser.sql` (and the redirectUri in case it differs from the one given above)
 1. Execute the `defaultUser.sql` script
 1. Start the backend
 1. Navigate to http://localhost:8080/tokenRequest/github (Or the url where the backend is reachable)
 1. Enter `admin` and press `Start authorization`
 1. Authorize the github app
+1. Install your
 1. Once authorized you should be redirected back to the backend and see the message `Token will be added`
