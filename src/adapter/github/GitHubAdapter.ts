@@ -346,8 +346,6 @@ export class GitHubAdapter implements IMSAdapter {
                     newData.linkedIssues.push(new IssueRelation(relationData._relationType as IssueRelationType, relationData._sourceIssue, relationData._sourceComponent, relationData._destIssue, relationData._sourceComponent));
                 }
             });
-        } else {
-            return null;
         }
         if (typeof data.type !== "undefined" && typeof IssueType[data.type] !== "undefined") {
             newData.type = IssueType[data.type];
@@ -358,8 +356,6 @@ export class GitHubAdapter implements IMSAdapter {
                     newData.interfaces.push(componentInterface);
                 }
             });
-        } else {
-            return null;
         }
         return newData;
     }
