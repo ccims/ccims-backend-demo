@@ -90,7 +90,7 @@ export class RootApiResolver {
             issue.title = args.data.title;
         }
         if (args.data.componentId) {
-            throw new Error("The component id can't be changed");
+            //throw new Error("The component id can't be changed");
         }
         if (args.data.issueType) {
             issue.type = args.data.issueType;
