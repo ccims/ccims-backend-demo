@@ -35,9 +35,9 @@ export class Issue {
 
     private _fieldsToSave: SavableFields;
 
-    private _interfaces: ComponentInterface[];
+    private _interfaces: Set<string>;
 
-    public constructor(id: string, component: Component, creator: User, creationDate: Date, title: string, body: string, open: boolean, linkedIssues: IssueRelation[], type: IssueType, onInterfaces: ComponentInterface[]) {
+    public constructor(id: string, component: Component, creator: User, creationDate: Date, title: string, body: string, open: boolean, linkedIssues: IssueRelation[], type: IssueType, onInterfaces: Set<string>) {
         this._component = component;
         this._creator = creator;
         this._creationDate = creationDate;
@@ -130,17 +130,26 @@ export class Issue {
         return this._fieldsToSave;
     }
 
-    public get componentInterfaces(): ComponentInterface[] {
-        return this._interfaces;
+    public get componentInterfaceIds(): string[] {
+        return [...this._interfaces];
     }
 
-    public async addToComponentInterface(interfaceId: string, dbClient: DBClient) {
-        this._interfaces.push(await dbClient.getComponentInterface(interfaceId));
+    public async getComponentInterfaces(dbClient: DBClient): Promise<ComponentInterface[]> {
+        return await Promise.all([...this._interfaces].map(id => dbClient.getComponentInterface(id)));
+    }
+
+    public addToComponentInterface(interfaceId: string) {
+        this._interfaces.add(interfaceId);
         this._fieldsToSave.interfaces = true;
     }
 
-    public async removeFromComponentInterface(interfaceId: string) {
-        this._interfaces = this._interfaces.filter(componentIface => componentIface.id != interfaceId);
+    public removeFromComponentInterface(interfaceId: string) {
+        this._interfaces.delete(interfaceId);
+        this._fieldsToSave.interfaces = true;
+    }
+
+    public setComponentInterfaces(interfaceIds: string[]) {
+        this._interfaces = new Set<string>(interfaceIds);
         this._fieldsToSave.interfaces = true;
     }
 
@@ -184,8 +193,8 @@ export class Issue {
         return (await getIMSAdapter(this._component, dbClient)).removeIssue(user, this);
     }
 
-    public static async create(component: Component, creator: User, title: string, body: string, type: IssueType, dbClient: DBClient): Promise<Issue> {
-        return (await getIMSAdapter(component, dbClient)).createIssue(creator, title, body, type);
+    public static async create(component: Component, creator: User, title: string, body: string, type: IssueType, interfaceIds: string[], dbClient: DBClient): Promise<Issue> {
+        return (await getIMSAdapter(component, dbClient)).createIssue(creator, title, body, type, new Set<string>(interfaceIds));
     }
 
     public static async load(id: string, component: Component, user: User, dbClient: DBClient): Promise<Issue> {

@@ -5,6 +5,7 @@ import { DBClient } from "../../domain/DBClient";
 import { IssueRelationResolver } from "./IssueRelationResolver";
 import { IssueType } from "../../domain/issues/IssueType";
 import { User } from "../../domain/users/User";
+import { InterfaceResolver } from "./InterfaceResolver";
 
 export class IssueResolver {
 
@@ -52,5 +53,9 @@ export class IssueResolver {
 
     public relatedIssues(): Array<IssueRelationResolver> {
         return this.issue.issueRelations.map(relation => new IssueRelationResolver(relation, this.user, this.dbClient));
+    }
+
+    public async interfaces(): Promise<Array<InterfaceResolver>> {
+        return (await this.issue.getComponentInterfaces(this.dbClient)).map(iface => new InterfaceResolver(iface, this.user, this.dbClient));
     }
 }

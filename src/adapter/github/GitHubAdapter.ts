@@ -14,6 +14,7 @@ import { GitHubIMSInfo } from "./GitHubIMSInfo";
 import { IMSType } from "../IMSType";
 import { IssueType } from "../../domain/issues/IssueType";
 import { IssueRelation, IssueRelationType } from "../../domain/issues/IssueRelation";
+import { fieldsConflictMessage } from "graphql/validation/rules/OverlappingFieldsCanBeMerged";
 
 export class GitHubAdapter implements IMSAdapter {
 
@@ -92,11 +93,11 @@ export class GitHubAdapter implements IMSAdapter {
             const metaParsed = this.parseMetadataBody(response.node.body, user);
             const component = await this._dbClient.getComponent(metaParsed.metadata.componentId);
             const creatorUser = await this._dbClient.getUser(metaParsed.metadata.creatorId);
-            return new Issue(response.node.id, component, creatorUser, new Date(response.node.createdAt), response.node.title, metaParsed.bodyText, !response.node.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type, await Promise.all(metaParsed.metadata.interfaces.map(interfaceID => this._dbClient.getComponentInterface(interfaceID))));
+            return new Issue(response.node.id, component, creatorUser, new Date(response.node.createdAt), response.node.title, metaParsed.bodyText, !response.node.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type, new Set<string>(metaParsed.metadata.interfaces));
         });
     }
 
-    async createIssue(user: User, title: string, body: string, type: IssueType): Promise<Issue> {
+    async createIssue(user: User, title: string, body: string, type: IssueType, interfaceIds: Set<string>): Promise<Issue> {
         const imsInfo = await this._component.getIMSInfo();
         return (await this.getRequest(user)).request<CreateIssueMutation>(`mutation CreateIssue($repositoryId: ID!, $title: String, $body: String) {
             createIssue(input: {
@@ -113,10 +114,10 @@ export class GitHubAdapter implements IMSAdapter {
             {
                 repositoryId: this._imsData.repositoryId,
                 title: title,
-                body: this.createMetadataBodyNewIssue(user, body)
+                body: this.createMetadataBodyNewIssue(user, [...interfaceIds], body)
             }
         ).then(async (response: CreateIssueMutation): Promise<Issue> => {
-            return new Issue(response.createIssue.issue.id, this._component, user, new Date(response.createIssue.issue.createdAt), title, body, !response.createIssue.issue.closed, [], type, await Promise.all(response.createIssue.issue.interfaces.map(interfaceID => this._dbClient.getComponentInterface(interfaceID))));
+            return new Issue(response.createIssue.issue.id, this._component, user, new Date(response.createIssue.issue.createdAt), title, body, !response.createIssue.issue.closed, [], type, interfaceIds);
         });
     }
 
@@ -125,7 +126,7 @@ export class GitHubAdapter implements IMSAdapter {
         let setParams = "";
         let usedVariables = new Array<string>();
         usedVariables.push("$issueId: ID!")
-        if (issue.fieldsToSave.body || issue.fieldsToSave.issueRelations || issue.fieldsToSave.type) {
+        if (issue.fieldsToSave.body || issue.fieldsToSave.issueRelations || issue.fieldsToSave.type || issue.fieldsToSave.interfaces) {
             setParams += `body: $body\n`;
             usedVariables.push("$body: String");
         }
@@ -253,7 +254,7 @@ export class GitHubAdapter implements IMSAdapter {
                     const metaParsed = this.parseMetadataBody(issue.body, user);
                     const component = await this._dbClient.getComponent(metaParsed.metadata.componentId);
                     const creatorUser = await this._dbClient.getUser(metaParsed.metadata.creatorId);
-                    return new Issue(issue.id, component, creatorUser, new Date(issue.createdAt), issue.title, metaParsed.bodyText, !issue.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type, await Promise.all(metaParsed.metadata.interfaces.map(interfaceID => this._dbClient.getComponentInterface(interfaceID))));
+                    return new Issue(issue.id, component, creatorUser, new Date(issue.createdAt), issue.title, metaParsed.bodyText, !issue.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type, metaParsed.metadata.interfaces);
                 }));
             }).catch(err => { console.log("Error in issue loading: ", err); throw new Error(err); });
         } else {
@@ -262,20 +263,20 @@ export class GitHubAdapter implements IMSAdapter {
     }
 
     private createMetadataBodyByIssue(user: User, issue: Issue): string {
-        return this.createMetadataBody(issue.component, user, issue.issueRelations, issue.type, issue.componentInterfaces, issue.body);
+        return this.createMetadataBody(issue.component, user, issue.issueRelations, issue.type, issue.componentInterfaceIds, issue.body);
     }
 
-    private createMetadataBodyNewIssue(user: User, bodyText: string): string {
-        return this.createMetadataBody(this._component, user, [], IssueType.UNCLASSIFIED,[], bodyText);
+    private createMetadataBodyNewIssue(user: User, interfaceIds: string[], bodyText: string): string {
+        return this.createMetadataBody(this._component, user, [], IssueType.UNCLASSIFIED, interfaceIds, bodyText);
     }
 
-    private createMetadataBody(component: Component, creator: User, relatedIssues: IssueRelation[], type: IssueType, interfaces: ComponentInterface[], bodyText: string): string {
+    private createMetadataBody(component: Component, creator: User, relatedIssues: IssueRelation[], type: IssueType, interfaceIds: string[], bodyText: string): string {
         const metadata: IssueMetadata = {
             componentId: component.id,
             creatorId: creator.id,
             linkedIssues: relatedIssues,
             type: type,
-            interfaces: interfaces.map(componentInterface => componentInterface.id)
+            interfaces: interfaceIds
         };
         const extraInfo = "```ccims\n" + JSON.stringify(metadata, null, 4) + "\n```\n";
         return (extraInfo + bodyText);

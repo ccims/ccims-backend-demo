@@ -77,8 +77,9 @@ export class RootApiResolver {
         if (!args.data.componentId) {
             throw new Error("componentID is necessary");
         }
+        const componentInterfaces = (await Promise.all((args.data.interfaceIds || []).map(id => this.dbClient.getComponentInterface(id)))).filter(compInterface => compInterface.hostComponentId == args.data.componentId).map(iface => iface.id);
         const component = await this.dbClient.getComponent(args.data.componentId);
-        return new IssueResolver(await Issue.create(component, this._user, args.data.title || "untiteled ccims issue", args.data.body || "", args.data.issueType || IssueType.UNCLASSIFIED, this.dbClient), this._user, this.dbClient);
+        return new IssueResolver(await Issue.create(component, this._user, args.data.title || "untiteled ccims issue", args.data.body || "", args.data.issueType || IssueType.UNCLASSIFIED, componentInterfaces, this.dbClient), this._user, this.dbClient);
     }
 
     async updateIssue(args: UpdateIssueArgs): Promise<IssueResolver> {
@@ -97,6 +98,10 @@ export class RootApiResolver {
         }
         if (typeof args.data.opened === "boolean") {
             issue.open = args.data.opened;
+        }
+        if (typeof args.data.interfaceIds === "object" && args.data.interfaceIds instanceof Array) {
+            const componentInterfaces = (await Promise.all((args.data.interfaceIds || []).map(id => this.dbClient.getComponentInterface(id)))).filter(compInterface => compInterface.hostComponentId == args.data.componentId).map(iface => iface.id);
+            issue.setComponentInterfaces(componentInterfaces);
         }
         issue.saveToIMS(this._user, this.dbClient);
         return new IssueResolver(issue, this._user, this.dbClient);
@@ -206,6 +211,7 @@ interface IssueInput {
     opened?: boolean
     componentId?: string
     issueType?: IssueType
+    interfaceIds?: string[]
 }
 interface UserInput {
     userName: string

@@ -81,7 +81,7 @@ input IssueInput {
     opened: Boolean
     componentId: ID
     issueType: IssueType
-    interfaces: [Interface]
+    interfaceIds: [String!]
 }
 
 type Comment implements Element {
