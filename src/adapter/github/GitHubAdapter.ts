@@ -5,6 +5,7 @@ import { IMSData } from "../IMSData";
 import { GraphQLClient } from "graphql-request";
 import { User } from "../../domain/users/User";
 import { Component } from "../../domain/components/Component";
+import { ComponentInterface } from "../../domain/components/ComponentInterface";
 import { IssueRequest, CommentRequest, CreateIssueMutation, RepositoryIdRequest, RemoveIssueMutation, ModifyIssueMutation, ReopenIssueMutation, CloseIssueMutation, AllIssueRequest } from "./GitHubGraphqlTypes";
 import { DBClient } from "../../domain/DBClient";
 import { GitHubCredential } from "./GitHubCredential";
@@ -261,19 +262,21 @@ export class GitHubAdapter implements IMSAdapter {
     }
 
     private createMetadataBodyByIssue(user: User, issue: Issue): string {
-        return this.createMetadataBody(issue.component, user, issue.issueRelations, issue.type, issue.body);
+        return this.createMetadataBody(issue.component, user, issue.issueRelations, issue.type, [], issue.body);
+        //TODO
     }
 
     private createMetadataBodyNewIssue(user: User, bodyText: string): string {
-        return this.createMetadataBody(this._component, user, [], IssueType.UNCLASSIFIED, bodyText);
+        return this.createMetadataBody(this._component, user, [], IssueType.UNCLASSIFIED,[], bodyText);
     }
 
-    private createMetadataBody(component: Component, creator: User, relatedIssues: IssueRelation[], type: IssueType, bodyText: string): string {
+    private createMetadataBody(component: Component, creator: User, relatedIssues: IssueRelation[], type: IssueType, interfaces: ComponentInterface[], bodyText: string): string {
         const metadata: IssueMetadata = {
             componentId: component.id,
             creatorId: creator.id,
             linkedIssues: relatedIssues,
-            type: type
+            type: type,
+            interfaces: interfaces.map(componentInterface => componentInterface.id)
         };
         const extraInfo = "```ccims\n" + JSON.stringify(metadata, null, 4) + "\n```\n";
         return (extraInfo + bodyText);
@@ -308,7 +311,8 @@ export class GitHubAdapter implements IMSAdapter {
             componentId: this._component.id,
             creatorId: user.id,
             linkedIssues: [],
-            type: IssueType.UNCLASSIFIED
+            type: IssueType.UNCLASSIFIED,
+            interfaces: []
         };
     }
 
@@ -322,7 +326,8 @@ export class GitHubAdapter implements IMSAdapter {
             componentId: "0",
             creatorId: "0",
             linkedIssues: [],
-            type: IssueType.UNCLASSIFIED
+            type: IssueType.UNCLASSIFIED,
+            interfaces: []
         }
         if (typeof data.componentId === "string") {
             newData.componentId = data.componentId;
@@ -347,6 +352,15 @@ export class GitHubAdapter implements IMSAdapter {
         if (typeof data.type !== "undefined" && typeof IssueType[data.type] !== "undefined") {
             newData.type = IssueType[data.type];
         }
+        if (typeof data.interfaces !== "undefined" && data.interfaces instanceof Array) {
+            data.interfaces.forEach((componentInterface: Object) => {
+                if (typeof componentInterface === "string") {
+                    newData.interfaces.push(componentInterface);
+                }
+            });
+        } else {
+            return null;
+        }
         return newData;
     }
 
@@ -356,5 +370,6 @@ interface IssueMetadata {
     componentId: string,
     creatorId: string,
     linkedIssues: Array<IssueRelation>,
-    type: IssueType
+    type: IssueType,
+    interfaces: Array<string>
 }
