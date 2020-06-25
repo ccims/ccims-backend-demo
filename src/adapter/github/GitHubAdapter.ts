@@ -114,7 +114,7 @@ export class GitHubAdapter implements IMSAdapter {
             {
                 repositoryId: this._imsData.repositoryId,
                 title: title,
-                body: this.createMetadataBodyNewIssue(user, [...interfaceIds], body)
+                body: this.createMetadataBodyNewIssue(user, [], type, [...interfaceIds], body)
             }
         ).then(async (response: CreateIssueMutation): Promise<Issue> => {
             return new Issue(response.createIssue.issue.id, this._component, user, new Date(response.createIssue.issue.createdAt), title, body, !response.createIssue.issue.closed, [], type, interfaceIds);
@@ -266,8 +266,8 @@ export class GitHubAdapter implements IMSAdapter {
         return this.createMetadataBody(issue.component, user, issue.issueRelations, issue.type, issue.componentInterfaceIds, issue.body);
     }
 
-    private createMetadataBodyNewIssue(user: User, interfaceIds: string[], bodyText: string): string {
-        return this.createMetadataBody(this._component, user, [], IssueType.UNCLASSIFIED, interfaceIds, bodyText);
+    private createMetadataBodyNewIssue(user: User, relatedIssues: IssueRelation[], type: IssueType, interfaceIds: string[], bodyText: string): string {
+        return this.createMetadataBody(this._component, user, relatedIssues, type, interfaceIds, bodyText);
     }
 
     private createMetadataBody(component: Component, creator: User, relatedIssues: IssueRelation[], type: IssueType, interfaceIds: string[], bodyText: string): string {
