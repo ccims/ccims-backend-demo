@@ -228,7 +228,8 @@ export class GitHubAdapter implements IMSAdapter {
     }
 
     public async getAllIssues(user: User): Promise<Issue[]> {
-        return (await this.getRequest(user)).request<AllIssueRequest>(`query getAllIssues($repositoryId: ID!) {
+        if (this._imsData.repositoryId) {
+            return (await this.getRequest(user)).request<AllIssueRequest>(`query getAllIssues($repositoryId: ID!) {
             node(id: $repositoryId) {
               ... on Repository {
                 issues(first: 100) {
@@ -243,17 +244,20 @@ export class GitHubAdapter implements IMSAdapter {
               }
             }
           }`,
-            {
-                repositoryId: this._imsData.repositoryId
-            }
-        ).then(async (response: AllIssueRequest): Promise<Issue[]> => {
-            return Promise.all(response.node.issues.nodes.map(async (issue): Promise<Issue> => {
-                const metaParsed = this.parseMetadataBody(issue.body, user);
-                const component = await this._dbClient.getComponent(metaParsed.metadata.componentId);
-                const creatorUser = await this._dbClient.getUser(metaParsed.metadata.creatorId);
-                return new Issue(issue.id, component, creatorUser, new Date(issue.createdAt), issue.title, metaParsed.bodyText, !issue.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type);
-            }));
-        }).catch(err => { console.log("Error in issue loading: ", err); throw new Error(err); });
+                {
+                    repositoryId: this._imsData.repositoryId
+                }
+            ).then(async (response: AllIssueRequest): Promise<Issue[]> => {
+                return Promise.all(response.node.issues.nodes.map(async (issue): Promise<Issue> => {
+                    const metaParsed = this.parseMetadataBody(issue.body, user);
+                    const component = await this._dbClient.getComponent(metaParsed.metadata.componentId);
+                    const creatorUser = await this._dbClient.getUser(metaParsed.metadata.creatorId);
+                    return new Issue(issue.id, component, creatorUser, new Date(issue.createdAt), issue.title, metaParsed.bodyText, !issue.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type);
+                }));
+            }).catch(err => { console.log("Error in issue loading: ", err); throw new Error(err); });
+        } else {
+            return [];
+        }
     }
 
     private createMetadataBodyByIssue(user: User, issue: Issue): string {
