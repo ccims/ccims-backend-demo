@@ -8,6 +8,8 @@ import { GitHubAdapter } from "../../adapter/github/GitHubAdapter";
 import { getIMSAdapter } from "../../adapter/IMSAdapterFactory";
 import { IssueType } from "./IssueType";
 import { IssueRelation, IssueRelationType } from "./IssueRelation";
+import { Interface } from "readline";
+import { ComponentInterface } from "../components/ComponentInterface";
 
 export class Issue {
 
@@ -33,7 +35,9 @@ export class Issue {
 
     private _fieldsToSave: SavableFields;
 
-    public constructor(id: string, component: Component, creator: User, creationDate: Date, title: string, body: string, open: boolean, linkedIssues: IssueRelation[], type: IssueType) {
+    private _interfaces: ComponentInterface[];
+
+    public constructor(id: string, component: Component, creator: User, creationDate: Date, title: string, body: string, open: boolean, linkedIssues: IssueRelation[], type: IssueType, onInterfaces: ComponentInterface[]) {
         this._component = component;
         this._creator = creator;
         this._creationDate = creationDate;
@@ -45,6 +49,7 @@ export class Issue {
         this._open = open;
         this._type = type;
         this._fieldsToSave = new SavableFields();
+        this._interfaces = onInterfaces;
     }
 
     /*public createComment(asUser: User, body: string, creationDate: Date): IssueComment {
@@ -125,6 +130,20 @@ export class Issue {
         return this._fieldsToSave;
     }
 
+    public get componentInterfaces(): ComponentInterface[] {
+        return this._interfaces;
+    }
+
+    public async addToComponentInterface(interfaceId: string, dbClient: DBClient) {
+        this._interfaces.push(await dbClient.getComponentInterface(interfaceId));
+        this._fieldsToSave.interfaces = true;
+    }
+
+    public async removeFromComponentInterface(interfaceId: string) {
+        this._interfaces = this._interfaces.filter(componentIface => componentIface.id != interfaceId);
+        this._fieldsToSave.interfaces = true;
+    }
+
     public async addIssueRelation(type: IssueRelationType, sourceId: string, sourceComponentId: string, destId: string, dstComponentId: string, dbClient: DBClient): Promise<IssueRelation> {
         let issueRelation: IssueRelation | undefined = this.issueRelations.find(relation => relation.srcIssueId == sourceId && relation.destIssueId == destId && relation.srcComponentId == sourceComponentId && relation.dstComponentId == dstComponentId);
         if (!issueRelation) {
@@ -180,9 +199,10 @@ class SavableFields {
     type: boolean = false;
     openState: boolean = false;
     issueRelations: boolean = false;
+    interfaces: boolean = false;
 
     public get needsSave(): boolean {
-        return this.title || this.body || this.type || this.openState || this.issueRelations;
+        return this.title || this.body || this.type || this.openState || this.issueRelations || this.interfaces;
     }
 
     public saved(): void {
@@ -191,5 +211,6 @@ class SavableFields {
         this.openState = false;
         this.type = false;
         this.issueRelations = false;
+        this.interfaces = false;
     }
 }
