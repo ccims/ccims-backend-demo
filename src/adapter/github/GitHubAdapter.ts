@@ -230,7 +230,7 @@ export class GitHubAdapter implements IMSAdapter {
     }
 
     public async getAllIssues(user: User): Promise<Issue[]> {
-        if (this._imsData.repositoryId) {
+        if (this._imsData.repositoryId || (this._imsData.owner && this._imsData.repository && this._imsData.owner.length > 0 && this._imsData.repository.length > 0)) {
             return (await this.getRequest(user)).request<AllIssueRequest>(`query getAllIssues($repositoryId: ID!) {
             node(id: $repositoryId) {
               ... on Repository {
