@@ -27,7 +27,8 @@ export interface CreateIssueMutation {
         issue: {
             id: string
             createdAt: string;
-            closed: boolean;
+            closed: boolean,
+            interfaces: Array<string>
         }
     }
 }

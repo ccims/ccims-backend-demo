@@ -92,7 +92,7 @@ export class GitHubAdapter implements IMSAdapter {
             const metaParsed = this.parseMetadataBody(response.node.body, user);
             const component = await this._dbClient.getComponent(metaParsed.metadata.componentId);
             const creatorUser = await this._dbClient.getUser(metaParsed.metadata.creatorId);
-            return new Issue(response.node.id, component, creatorUser, new Date(response.node.createdAt), response.node.title, metaParsed.bodyText, !response.node.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type);
+            return new Issue(response.node.id, component, creatorUser, new Date(response.node.createdAt), response.node.title, metaParsed.bodyText, !response.node.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type, await Promise.all(metaParsed.metadata.interfaces.map(interfaceID => this._dbClient.getComponentInterface(interfaceID))));
         });
     }
 
@@ -115,8 +115,8 @@ export class GitHubAdapter implements IMSAdapter {
                 title: title,
                 body: this.createMetadataBodyNewIssue(user, body)
             }
-        ).then((response: CreateIssueMutation): Issue => {
-            return new Issue(response.createIssue.issue.id, this._component, user, new Date(response.createIssue.issue.createdAt), title, body, !response.createIssue.issue.closed, [], type);
+        ).then(async (response: CreateIssueMutation): Promise<Issue> => {
+            return new Issue(response.createIssue.issue.id, this._component, user, new Date(response.createIssue.issue.createdAt), title, body, !response.createIssue.issue.closed, [], type, await Promise.all(response.createIssue.issue.interfaces.map(interfaceID => this._dbClient.getComponentInterface(interfaceID))));
         });
     }
 
@@ -253,7 +253,7 @@ export class GitHubAdapter implements IMSAdapter {
                     const metaParsed = this.parseMetadataBody(issue.body, user);
                     const component = await this._dbClient.getComponent(metaParsed.metadata.componentId);
                     const creatorUser = await this._dbClient.getUser(metaParsed.metadata.creatorId);
-                    return new Issue(issue.id, component, creatorUser, new Date(issue.createdAt), issue.title, metaParsed.bodyText, !issue.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type);
+                    return new Issue(issue.id, component, creatorUser, new Date(issue.createdAt), issue.title, metaParsed.bodyText, !issue.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type, await Promise.all(metaParsed.metadata.interfaces.map(interfaceID => this._dbClient.getComponentInterface(interfaceID))));
                 }));
             }).catch(err => { console.log("Error in issue loading: ", err); throw new Error(err); });
         } else {
@@ -262,8 +262,7 @@ export class GitHubAdapter implements IMSAdapter {
     }
 
     private createMetadataBodyByIssue(user: User, issue: Issue): string {
-        return this.createMetadataBody(issue.component, user, issue.issueRelations, issue.type, [], issue.body);
-        //TODO
+        return this.createMetadataBody(issue.component, user, issue.issueRelations, issue.type, issue.componentInterfaces, issue.body);
     }
 
     private createMetadataBodyNewIssue(user: User, bodyText: string): string {
