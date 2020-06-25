@@ -46,6 +46,7 @@ type Issue {
     issueType: IssueType
     relatedIssues: [IssueRelation]
     creationDate: String
+    interfaces: [Interface]
 }
 
 type IssueRelation {
@@ -80,6 +81,7 @@ input IssueInput {
     opened: Boolean
     componentId: ID
     issueType: IssueType
+    interfaces: [Interface]
 }
 
 type Comment implements Element {
