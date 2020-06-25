@@ -86,7 +86,7 @@ export class Issue {
     }
 
     public get body(): string {
-        return this._title;
+        return this._body;
     }
 
     public set body(body: string) {
