@@ -254,7 +254,7 @@ export class GitHubAdapter implements IMSAdapter {
                     const metaParsed = this.parseMetadataBody(issue.body, user);
                     const component = await this._dbClient.getComponent(metaParsed.metadata.componentId);
                     const creatorUser = await this._dbClient.getUser(metaParsed.metadata.creatorId);
-                    return new Issue(issue.id, component, creatorUser, new Date(issue.createdAt), issue.title, metaParsed.bodyText, !issue.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type, metaParsed.metadata.interfaces);
+                    return new Issue(issue.id, component, creatorUser, new Date(issue.createdAt), issue.title, metaParsed.bodyText, !issue.closed, metaParsed.metadata.linkedIssues, metaParsed.metadata.type, new Set<string>(metaParsed.metadata.interfaces));
                 }));
             }).catch(err => { console.log("Error in issue loading: ", err); throw new Error(err); });
         } else {
