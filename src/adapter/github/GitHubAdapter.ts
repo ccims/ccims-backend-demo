@@ -40,11 +40,15 @@ export class GitHubAdapter implements IMSAdapter {
                 headers: {
                     authorization: authHead
                 }
-            }).request<RepositoryIdRequest>(`query {
-                repository(name: "${this._imsData.repository}", owner: "${this._imsData.owner}"){
+            }).request<RepositoryIdRequest>(`query getRepositoryId($repositoryName: String!, $repositoryOwner: String!) {
+                repository(name: $repositoryName, owner: $repositoryOwner){
                     id
                     }
-                }`);
+                }`,
+                {
+                    repositoryName: this._imsData.repository,
+                    repositoryOwner: this._imsData.owner
+                });
             this._imsData = {
                 repository: this._imsData.repository,
                 owner: this._imsData.owner,
@@ -69,8 +73,8 @@ export class GitHubAdapter implements IMSAdapter {
     }
 
     async getIssue(user: User, id: string): Promise<Issue> {
-        return (await this.getRequest(user)).request<IssueRequest>(`query {
-            node(id: "${id}") {
+        return (await this.getRequest(user)).request<IssueRequest>(`query SingleIssueRequest($issueId: ID!) {
+            node(id: $issueId) {
                 ... on Issue {
                   id
                   createdAt
@@ -79,7 +83,11 @@ export class GitHubAdapter implements IMSAdapter {
                   closed
                 }
               }
-        }`).then(async (response: IssueRequest): Promise<Issue> => {
+        }`,
+            {
+                issueId: id
+            }
+        ).then(async (response: IssueRequest): Promise<Issue> => {
             const metaParsed = this.parseMetadataBody(response.node.body, user);
             const component = await this._dbClient.getComponent(metaParsed.metadata.componentId);
             const creatorUser = await this._dbClient.getUser(metaParsed.metadata.creatorId);
@@ -89,18 +97,24 @@ export class GitHubAdapter implements IMSAdapter {
 
     async createIssue(user: User, title: string, body: string, type: IssueType): Promise<Issue> {
         const imsInfo = await this._component.getIMSInfo();
-        return (await this.getRequest(user)).request<CreateIssueMutation>(`mutation CreateIssue {
+        return (await this.getRequest(user)).request<CreateIssueMutation>(`mutation CreateIssue($repositoryId: ID!, $title: String, $body: String) {
             createIssue(input: {
-              repositoryId: "${this._imsData.repositoryId}", 
-              title: "${title}", 
-              body: "${this.createMetadataBodyNewIssue(user, body)}"}) {
+              repositoryId: $repositoryId, 
+              title: $title, 
+              body: $body}) {
               issue {
                 id
                 createdAt
                 closed
               }
             }
-          }`).then((response: CreateIssueMutation): Issue => {
+          }`,
+            {
+                repositoryId: this._imsData.repositoryId,
+                title: title,
+                body: this.createMetadataBodyNewIssue(user, body)
+            }
+        ).then((response: CreateIssueMutation): Issue => {
             return new Issue(response.createIssue.issue.id, this._component, user, new Date(response.createIssue.issue.createdAt), title, body, !response.createIssue.issue.closed, [], type);
         });
     }
@@ -108,71 +122,87 @@ export class GitHubAdapter implements IMSAdapter {
     async updateIssue(user: User, issue: Issue): Promise<boolean> {
         const imsInfo = await this._component.getIMSInfo();
         let setParams = "";
-        if (issue.fieldsToSave.body) {
-            setParams += `body: "${this.createMetadataBodyByIssue(user, issue)}"\n`;
+        let usedVariables = new Array<string>();
+        usedVariables.push("$issueId: ID!")
+        if (issue.fieldsToSave.body || issue.fieldsToSave.issueRelations || issue.fieldsToSave.type) {
+            setParams += `body: $body\n`;
+            usedVariables.push("$body: String");
         }
         if (issue.fieldsToSave.title) {
-            setParams += `title: "${issue.title}"\n`;
+            setParams += `title: $title\n`;
+            usedVariables.push("$title: String");
         }
-        if (issue.fieldsToSave.issueRelations) {
-            setParams += `body: "${this.createMetadataBodyByIssue(user, issue)}"\n`;
-        }
-        if (issue.fieldsToSave.type) {
-            setParams += `body: "${this.createMetadataBodyByIssue(user, issue)}"\n`;
-        }
-        return (await this.getRequest(user)).request<ModifyIssueMutation>(`mutation UpdateIssue {
+        return (await this.getRequest(user)).request<ModifyIssueMutation>(`mutation UpdateIssue(${usedVariables.join(", ")})  {
             updateIssue(input:{
-              id: "${issue.id}"
+              id: $issueId
               ${setParams}
             }) {
               clientMutationId
             }
-          }`).then((response: ModifyIssueMutation): boolean => {
+          }`,
+            {
+                issueId: issue.id,
+                body: this.createMetadataBodyByIssue(user, issue),
+                title: issue.title,
+            }
+        ).then((response: ModifyIssueMutation): boolean => {
             return true;
         });
     }
 
     async reopenIssue(user: User, issue: Issue): Promise<boolean> {
         const imsInfo = await this._component.getIMSInfo();
-        return (await this.getRequest(user)).request<ReopenIssueMutation>(`mutation ReopenIssue {
+        return (await this.getRequest(user)).request<ReopenIssueMutation>(`mutation ReopenIssue($issueId: ID!)  {
             reopenIssue(input:{
-              issueId: "${issue.id}"
+              issueId: $issueId
             }) {
               clientMutationId
             }
-          }`).then((response: ReopenIssueMutation): boolean => {
+          }`,
+            {
+                issueId: issue.id
+            }
+        ).then((response: ReopenIssueMutation): boolean => {
             return true;
         });
     }
 
     async closeIssue(user: User, issue: Issue): Promise<boolean> {
         const imsInfo = await this._component.getIMSInfo();
-        return (await this.getRequest(user)).request<CloseIssueMutation>(`mutation ReopenIssue {
+        return (await this.getRequest(user)).request<CloseIssueMutation>(`mutation CloseIssue($issueId: ID!)  {
             closeIssue(input:{
-              issueId: "${issue.id}"
+              issueId: $issueId
             }) {
               clientMutationId
             }
-          }`).then((response: CloseIssueMutation): boolean => {
+          }`,
+            {
+                issueId: issue.id
+            }
+        ).then((response: CloseIssueMutation): boolean => {
             return true;
         });
     }
 
     async removeIssue(user: User, issue: Issue): Promise<boolean> {
         const imsInfo = await this._component.getIMSInfo();
-        return (await this.getRequest(user)).request<RemoveIssueMutation>(`mutation DeleteIssue {
+        return (await this.getRequest(user)).request<RemoveIssueMutation>(`mutation DeleteIssue($issueId: ID!) {
             deleteIssue(input:{
-              issueId:"${issue.id}"
+              issueId: $issueId
             }) {
               clientMutationId
             }
           }
-          `).then((_response: RemoveIssueMutation): boolean => true);
+          `,
+            {
+                issueId: issue.id
+            }
+        ).then((_response: RemoveIssueMutation): boolean => true);
     }
 
     async getComments(issue: Issue, user: User): Promise<IssueComment[]> {
-        return (await this.getRequest(user)).request<CommentRequest>(`query {
-            node(id:"${issue.id}") {
+        return (await this.getRequest(user)).request<CommentRequest>(`query($issueId: ID!) {
+            node(id: $issueId) {
                 comments (first: 100) {
                     nodes {
                         author {
@@ -183,7 +213,11 @@ export class GitHubAdapter implements IMSAdapter {
                     }
                 }
             }
-        }`).then((response: CommentRequest): IssueComment[] => {
+        }`,
+            {
+                issueId: issue.id
+            }
+        ).then((response: CommentRequest): IssueComment[] => {
             let comments: IssueComment[] = new Array();
             response.node.comments.nodes.forEach(async comment => {
                 const creatorUser = await this._dbClient.getUserByUsername(comment.author.login);
@@ -194,8 +228,8 @@ export class GitHubAdapter implements IMSAdapter {
     }
 
     public async getAllIssues(user: User): Promise<Issue[]> {
-        return (await this.getRequest(user)).request<AllIssueRequest>(`query getAllIssues{
-            node(id: "${this._imsData.repositoryId}") {
+        return (await this.getRequest(user)).request<AllIssueRequest>(`query getAllIssues($repositoryId: ID!) {
+            node(id: $repositoryId) {
               ... on Repository {
                 issues(first: 100) {
                   nodes {
@@ -208,7 +242,11 @@ export class GitHubAdapter implements IMSAdapter {
                 }
               }
             }
-          }`).then(async (response: AllIssueRequest): Promise<Issue[]> => {
+          }`,
+            {
+                repositoryId: this._imsData.repositoryId
+            }
+        ).then(async (response: AllIssueRequest): Promise<Issue[]> => {
             return Promise.all(response.node.issues.nodes.map(async (issue): Promise<Issue> => {
                 const metaParsed = this.parseMetadataBody(issue.body, user);
                 const component = await this._dbClient.getComponent(metaParsed.metadata.componentId);
@@ -234,7 +272,7 @@ export class GitHubAdapter implements IMSAdapter {
             type: type
         };
         const extraInfo = "```ccims\n" + JSON.stringify(metadata, null, 4) + "\n```\n";
-        return (extraInfo + bodyText).replace(/"/g, '\\"');
+        return (extraInfo + bodyText);
     }
 
     private parseMetadataBody(body: string, user: User): { bodyText: string, metadata: IssueMetadata } {
