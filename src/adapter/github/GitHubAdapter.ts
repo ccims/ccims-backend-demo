@@ -14,7 +14,6 @@ import { GitHubIMSInfo } from "./GitHubIMSInfo";
 import { IMSType } from "../IMSType";
 import { IssueType } from "../../domain/issues/IssueType";
 import { IssueRelation, IssueRelationType } from "../../domain/issues/IssueRelation";
-import { fieldsConflictMessage } from "graphql/validation/rules/OverlappingFieldsCanBeMerged";
 
 export class GitHubAdapter implements IMSAdapter {
 

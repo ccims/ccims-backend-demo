@@ -12,7 +12,9 @@ export function tokenRequestRouter(dbClient: DBClient) {
     reqRouter.get("/github", (request, response, next) => {
         response.sendFile(path.join(__dirname, "../../html/githubRequest.html"));
     });
-    reqRouter.post("/github", urlencoded());
+    reqRouter.post("/github", urlencoded({
+        extended: false
+    }));
     reqRouter.post("/github", async (request, response, next) => {
         const githubInfo = (await dbClient.getAllIMSInfo()).filter(info => info.type == IMSType.GitHub)[0] as GitHubIMSInfo;
         if (githubInfo) {
